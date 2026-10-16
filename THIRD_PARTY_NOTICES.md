@@ -10,4 +10,4 @@ Research references remain attributed, with examined revisions and observed lice
 
 No OEM APK/DEX/Smali/decompiled method body, firmware, partition dump, proprietary database, recipe catalog, photographs, credentials or signing keys is included. Hashes and class/method names identify research artifacts without distributing their contents. Historical screenshots in device research show the original independent toolkit applications; current unified screenshots are separately identified.
 
-Monsieur Cuisine, Silvercrest, Lidl, Android and other product names identify their respective subjects and owners. BlackStuffLabs' independent SDK makes no claim of vendor affiliation, endorsement or approval.
+Monsieur Cuisine, Silvercrest, Lidl, Android and other product names identify their respective subjects and owners. The independent SDK from [blackstufflabs.com](https://blackstufflabs.com) makes no claim of vendor affiliation, endorsement or approval.

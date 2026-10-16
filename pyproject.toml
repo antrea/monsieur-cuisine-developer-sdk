@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "monsieur-cuisine-developer-sdk"
 version = "0.1.0"
-description = "One offline Python and Android development SDK and native Digital Twin for MCC and MCS"
+description = "Unofficial Python and Android SDK and offline Digital Twin for Lidl/Silvercrest Monsieur Cuisine Connect and Smart"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
-authors = [{name = "BlackStuff Labs and Monsieur Cuisine Developer SDK contributors"}]
+authors = [{name = "blackstufflabs.com and Monsieur Cuisine Developer SDK contributors"}]
+keywords = ["lidl", "silvercrest", "monsieur-cuisine", "mcc", "mcs", "digital-twin", "android", "kotlin", "serial-protocol", "reverse-engineering"]
 dependencies = []
 classifiers = ["Programming Language :: Python :: 3 :: Only", "Operating System :: OS Independent", "Development Status :: 3 - Alpha"]
 
@@ -20,6 +21,7 @@ monsieur-cuisine-digital-twin = "monsieur_cuisine_sdk.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/antrea/monsieur-cuisine-developer-sdk"
+Website = "https://blackstufflabs.com"
 Documentation = "https://github.com/antrea/monsieur-cuisine-developer-sdk/tree/main/docs"
 Issues = "https://github.com/antrea/monsieur-cuisine-developer-sdk/issues"
 Funding = "https://ko-fi.com/blackstufflabs"

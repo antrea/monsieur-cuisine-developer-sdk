@@ -4,7 +4,7 @@
 
 **One SDK. Two devices. One Digital Twin.**
 
-Develop and test software for **Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial BlackStuff Labs toolkit combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
+Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 
 Use it to explore the original protocol bytes, build an application, test motor-control logic, inject sensor faults and reproduce a debugging session. The virtual PowerBoards maintain state and generate dynamic binary telemetry. Their physics are synthetic; the project does not certify software for a real appliance.
 
@@ -158,4 +158,4 @@ Original SDK code, documentation and synthetic data use the [MIT license](LICENS
 
 ## Support Development
 
-The toolkit is free and open source. If it helps your development or research, you can [support BlackStuff Labs on Ko-fi](https://ko-fi.com/blackstufflabs). Contributions are optional and help maintain and improve the project.
+The toolkit is free and open source. If it helps your development or research, you can support [blackstufflabs.com](https://blackstufflabs.com) [on Ko-fi](https://ko-fi.com/blackstufflabs). Contributions are optional and help maintain and improve the project.

@@ -6,7 +6,7 @@ An independent Python and Kotlin toolkit for developing software around MCC and 
 
 ## 2. Is this an official Lidl or Silvercrest project?
 
-No. BlackStuff Labs is an independent project with no claimed vendor affiliation or endorsement. See [license and attribution](../THIRD_PARTY_NOTICES.md).
+No. This project from [blackstufflabs.com](https://blackstufflabs.com) is independent, with no claimed vendor affiliation or endorsement. See [license and attribution](../THIRD_PARTY_NOTICES.md).
 
 ## 3. What is the difference between MCC and MCS?
 
@@ -94,7 +94,7 @@ Read [CONTRIBUTING.md](../CONTRIBUTING.md), reproduce an issue with a small synt
 
 ## 24. How can I support the project?
 
-Use [BlackStuff Labs on Ko-fi](https://ko-fi.com/blackstufflabs). Support is optional; the SDK remains free and open source.
+Support [blackstufflabs.com](https://blackstufflabs.com) [on Ko-fi](https://ko-fi.com/blackstufflabs). Support is optional; the SDK remains free and open source.
 
 ## 25. Why does motion continue after STOP?
 

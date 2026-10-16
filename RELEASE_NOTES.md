@@ -2,7 +2,7 @@
 
 **Initial Unified Release**
 
-One offline SDK and native Digital Twin for Monsieur Cuisine Connect and Smart, from the independent BlackStuffLabs project. This product starts at 0.1.0; it does not continue either predecessor toolkit's 0.2.0 version history.
+One offline SDK and native Digital Twin for Monsieur Cuisine Connect and Smart, from the independent [blackstufflabs.com](https://blackstufflabs.com) project. This product starts at 0.1.0; it does not continue either predecessor toolkit's 0.2.0 version history.
 
 ## Included
 
@@ -35,4 +35,4 @@ No physical UART driver, OEM APK patch, firmware flasher, manufacturer recipe im
 
 Requires Python 3.11+ and Tcl/Tk for the desktop; Python runtime dependencies are empty. Android development additionally needs JDK 21 and the Android SDK. The developer demo is for emulator/test use. Source ZIP, Python wheel, Android SDK JAR and debug demo APK are distributed with SHA-256 checksums.
 
-Start with the [README](README.md), [Digital Twin guide](docs/digital-twin.md), [API](docs/api.md), [FAQ](docs/faq.md) and [troubleshooting](docs/troubleshooting.md). [Release preparation/publication](docs/releasing.md) documents reproducible distribution; [MIT](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) preserve attribution. [Support BlackStuff Labs on Ko-fi](https://ko-fi.com/blackstufflabs).
+Start with the [README](README.md), [Digital Twin guide](docs/digital-twin.md), [API](docs/api.md), [FAQ](docs/faq.md) and [troubleshooting](docs/troubleshooting.md). [Release preparation/publication](docs/releasing.md) documents reproducible distribution; [MIT](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) preserve attribution. Support [blackstufflabs.com](https://blackstufflabs.com) [on Ko-fi](https://ko-fi.com/blackstufflabs).
