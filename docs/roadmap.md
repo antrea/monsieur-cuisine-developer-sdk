@@ -6,7 +6,7 @@ The items below are priorities, not promised delivery dates or claims of work al
 
 ## Engineering priorities
 
-1. **Execute the prepared platform matrix.** CI is configured for Windows, Ubuntu and macOS with Python 3.11–3.14, display support and isolated installed-wheel checks. Local verification covered Windows/Python 3.12.14; hosted CI and the additional environments still need actual runs when a remote is authorized.
+1. **Maintain the verified platform matrix.** Hosted Windows, Ubuntu and macOS jobs with Python 3.11–3.14, real display support and isolated installed-wheel checks have passed. Keep the [compatibility record](compatibility.md) current as runners, Python and Tcl/Tk evolve; extend claims only after actual runs.
 2. **Broaden lifecycle and workload regressions.** Preserve the existing connected model-switch, cancellation, quota, observer, STOP-priority and unsolicited-frame tests while adding independent adversarial cases. Keep diagnostic and UI queues bounded.
 3. **Exercise native portability.** Validate POSIX PTY behavior on a POSIX host and test Tk packaging, DPI, keyboard navigation and accessibility on each supported desktop platform. A Windows screenshot is not cross-platform visual verification.
 4. **Evolve common scenario/recording tooling carefully.** Improve scenario authoring and large-session workflows with explicit schemas, compatibility readers and resource budgets. Preserve model selection, units and byte/checkpoint comparison rather than silently converting legacy formats.
@@ -25,4 +25,4 @@ The items below are priorities, not promised delivery dates or claims of work al
 
 These are evidence gaps, not coding TODOs to fill with guessed values. Any future physical research or hardware transport needs its own explicit scope, lawful artifacts and separate validation. Automatic appliance discovery, OEM binary patching, manufacturer recipe redistribution and a firmware flasher are not implicit deliverables of this roadmap.
 
-Contributors should follow [evidence requirements](evidence.md), [attribution/notices](../THIRD_PARTY_NOTICES.md), [CONTRIBUTING](../CONTRIBUTING.md) and [safety limits](safety.md). Publication/signing remain separate from preparing a local candidate; see [releasing](releasing.md).
+Contributors should follow [evidence requirements](evidence.md), [attribution/notices](../THIRD_PARTY_NOTICES.md), [CONTRIBUTING](../CONTRIBUTING.md) and [safety limits](safety.md). New releases require fresh verification of their exact source and assets; see [releasing](releasing.md).

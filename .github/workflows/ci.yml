@@ -81,5 +81,5 @@ jobs:
         run: |
           python tools/verify_android.py --model mcc
           python tools/verify_android.py --model mcs
-      # Hosted CI and Android instrumentation/emulator execution are not claimed
-      # until an actual hosted run provides results. No publish/signing step exists.
+      # This job compiles instrumentation; actual emulator/ART execution is a
+      # separate verification scope. No publish/signing step exists.

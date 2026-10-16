@@ -1,5 +1,7 @@
 # Monsieur Cuisine Developer SDK
 
+[![SDK checks](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/workflows/ci.yml)
+
 **One SDK. Two devices. One Digital Twin.**
 
 Develop and test software for **Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial BlackStuff Labs toolkit combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
@@ -136,7 +138,7 @@ mc-sdk --model mcs conformance
 
 The full suite includes real Tk and loopback tests and needs a display. On a headless Linux machine, use `xvfb-run -a python -m unittest discover -s tests -v` after installing Xvfb/Tk. Python library and CLI use do not need a display.
 
-Local verification includes **97 Python tests**, **24 Kotlin/JVM tests**, **3,020 Python/Kotlin byte comparisons**, deterministic stress and actual Android Activity-to-Tk integration for both models. A CI configuration is not itself a successful run; see [testing](docs/tests.md) and [release audit](RELEASE_AUDIT.md) for executed platforms and exact scope.
+Verification includes **97 Python tests**, **24 Kotlin/JVM tests**, **3,020 Python/Kotlin byte comparisons**, deterministic stress and actual Android Activity-to-Tk integration for both models. The [completed hosted run](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/runs/38873336351) passed all 12 Windows/Linux/macOS and Python 3.11–3.14 combinations, plus Android build/JVM integration. See [testing](docs/tests.md) and [release audit](RELEASE_AUDIT.md) for exact scope.
 
 ## Limitations
 

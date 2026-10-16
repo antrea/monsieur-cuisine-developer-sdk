@@ -9,6 +9,13 @@ publication checks and actual hosted runs are identified in [testing](docs/tests
 and [compatibility](docs/compatibility.md). The [SDK workflow](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/workflows/ci.yml)
 provides the live GitHub result; configuration alone is not a PASS.
 
+Publication verification on 2026-10-16: the [completed hosted run](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/runs/38873336351)
+passed all 13 jobs: 12 Windows/Linux/macOS and Python 3.11–3.14 combinations,
+plus Android compilation, JVM tests and both binary client integrations. A fresh
+anonymous remote clone also passed all 97 tests and a separate installed-wheel
+API/CLI/GUI check. Public source and all reachable commit metadata/content were
+reviewed for private development details. Build logs remain outside distribution.
+
 ## Verification actually performed
 
 | Check | Result and scope |
@@ -84,9 +91,9 @@ manual review and do not constitute legal certification.
 ## Explicit limits and remaining verification
 
 - Windows 11 / Python 3.12.14 / Tk 8.6 and Android 30 ART were executed locally.
-  Linux, macOS and the additional Python versions in the CI matrix have **not**
-  been executed for this new repository. Prepared GitHub Actions are not a green
-  hosted result. Run them when a future remote is authorized.
+  Hosted Windows/Linux/macOS across Python 3.11–3.14 subsequently passed as
+  recorded above. Hosted Android instrumentation/emulator execution and POSIX
+  PTY integration are outside that result.
 - Runtime Python dependencies are empty; the desktop requires platform Tcl/Tk.
   Source setup covers all three operating systems. Android builds resolve their
   separately licensed tools/dependencies; the built twin and demo run offline.

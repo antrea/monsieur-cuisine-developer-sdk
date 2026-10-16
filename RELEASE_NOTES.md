@@ -11,7 +11,7 @@ One offline SDK and native Digital Twin for Monsieur Cuisine Connect and Smart, 
 - One optional loopback Android connection sharing the desktop's model and command owner, with bounded queues, generations and deterministic cleanup.
 - One Android Studio `sdk`/`demo` project with common client/lifecycle behavior and independent wire delegates.
 - Model-explicit recording/replay, bounded scenarios/stress, sensor/fault injection, protocol inspection and CSV telemetry with explicit units.
-- Current English product guides, secondary Italian introduction, preserved historical device research, original MIT credits and included third-party notices.
+- English product guides and historical device research, original MIT credits and included third-party notices.
 
 ## Correctness work
 
@@ -23,7 +23,7 @@ The current public Python suite passed **97 tests** on Windows/Python 3.12.14/Tk
 
 Android verification includes **24 JVM tests**, **3020 Python/Kotlin byte comparisons with zero mismatches**, APK compilation, independent packaged consumers on JVM/ART and both actual demo activities controlling the same model shown by the real Tk window. The additional MCS unsolicited-telemetry runtime regression passed. These are separate checks, not hardware validation. Full details and baseline/migration counts are in [testing](docs/tests.md) and [RELEASE_AUDIT.md](RELEASE_AUDIT.md).
 
-The full current test suite requires Tk/display; the library/CLI work headlessly. Windows, Linux and macOS CI results are tracked by the [real SDK workflow](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/workflows/ci.yml). See the [compatibility record](docs/compatibility.md) for completed environments; a workflow configuration alone is not a successful run.
+The [completed hosted run](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/runs/38873336351) passed all 13 jobs: Python 3.11–3.14 on Windows, Linux and macOS with real Tk tests and isolated installed API/CLI/GUI checks, plus Android builds, JVM tests and both binary client integrations. A fresh remote clone also passed all 97 tests and standalone wheel checks. The full suite requires Tk/display; the library/CLI work headlessly. See [compatibility](docs/compatibility.md) and the [live workflow](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/workflows/ci.yml) for exact scope.
 
 ## Compatibility and limits
 
@@ -33,4 +33,6 @@ Many pure legacy imports alias canonical modules; old desktop/server processes a
 
 No physical UART driver, OEM APK patch, firmware flasher, manufacturer recipe importer or hardware-safety claim is included. Dynamics/interlocks and firmware defaults are synthetic policies. Source remains independent of the named vendors.
 
-Start with the [README](README.md), [Digital Twin guide](docs/digital-twin.md), [API](docs/api.md), [FAQ](docs/faq.md) and [troubleshooting](docs/troubleshooting.md). [Release preparation/publication](docs/releasing.md) documents future authorized distribution; [MIT](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) preserve attribution. [Support BlackStuffLabs on Ko-fi](https://ko-fi.com/blackstufflabs).
+Requires Python 3.11+ and Tcl/Tk for the desktop; Python runtime dependencies are empty. Android development additionally needs JDK 21 and the Android SDK. The developer demo is for emulator/test use. Source ZIP, Python wheel, Android SDK JAR and debug demo APK are distributed with SHA-256 checksums.
+
+Start with the [README](README.md), [Digital Twin guide](docs/digital-twin.md), [API](docs/api.md), [FAQ](docs/faq.md) and [troubleshooting](docs/troubleshooting.md). [Release preparation/publication](docs/releasing.md) documents reproducible distribution; [MIT](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) preserve attribution. [Support BlackStuff Labs on Ko-fi](https://ko-fi.com/blackstufflabs).

@@ -1,6 +1,6 @@
 # Release preparation and GitHub publication
 
-The current 0.1.0 candidate was prepared and verified locally. No GitHub repository, remote push, tag, release, release signing or replacement of the predecessor repositories was performed. The procedure below distinguishes reproducible local preparation from a later, explicitly authorized publication.
+The unified source is published at [antrea/monsieur-cuisine-developer-sdk](https://github.com/antrea/monsieur-cuisine-developer-sdk), with [executed hosted verification](tests.md). This guide describes how to reproduce preparation and publish future releases. Check the actual [release list](https://github.com/antrea/monsieur-cuisine-developer-sdk/releases) for published assets. The predecessor repositories are separate products.
 
 ## Freeze and verify source
 
@@ -19,7 +19,7 @@ python -m monsieur_cuisine_sdk --model mcs --smoke-test
 python tools/audit_release.py --runtime
 ```
 
-The full suite and GUI smoke commands require working Tk and a display. Prepared Linux CI uses Xvfb; headless API/CLI checks do not require Tk. Repeat relevant Android JVM, packaged-consumer, build and actual-runtime checks from [android/README.md](../android/README.md) and [Android integration](android.md). A build-only result must not be labeled an ART/activity pass.
+The full suite and GUI smoke commands require working Tk and a display. Linux CI uses Xvfb; headless API/CLI checks do not require Tk. Repeat relevant Android JVM, packaged-consumer, build and actual-runtime checks from [android/README.md](../android/README.md) and [Android integration](android.md). A build-only result must not be labeled an ART/activity pass.
 
 Update [RELEASE_AUDIT.md](../RELEASE_AUDIT.md) with actual results, environments, skipped/unrun work and remaining limits. Confirm all required current guides, funding metadata, notices, original MIT credits, independent specs/fixtures and current screenshots exist. Historical research remains marked as historical. The content audit checks selected files, links, syntax, structured data, excluded material and common secret/private-path patterns; manual provenance/license review is still necessary.
 
@@ -69,4 +69,4 @@ gh release create v0.1.0 --repo OWNER/monsieur-cuisine-developer-sdk --draft \
 
 If a remote/repository/tag already exists, inspect its identity and contents instead of blindly rerunning creation commands. Add the reviewed wheel/JAR/debug APK as desired draft assets, then check asset hashes, notes, license notices, model names and version. Drafting and making a release public are separate actions. Release signing, PyPI upload and publishing an Android application are not implied by this guide.
 
-After an authorized push, observe the hosted workflow results before calling the prepared Windows/Linux/macOS/Python matrix executed. Record failures or skips honestly. Review the draft in the approved repository, then publish only when that final external action is authorized. Funding metadata in [`.github/FUNDING.yml`](../.github/FUNDING.yml) points to BlackStuffLabs' Ko-fi; adding that source file itself creates no remote account or donation transaction.
+After a push, require successful hosted workflow results for the exact release commit. Record failures or skips honestly. Review all reachable public history, filenames, image metadata and nested archive contents for private development details. Keep logs, credentials and absolute workstation paths outside public source and assets; select uploads by explicit filename rather than uploading an entire build directory. Review the draft, then publish when the release owner has authorized the final action. Funding metadata in [`.github/FUNDING.yml`](../.github/FUNDING.yml) points to BlackStuff Labs' Ko-fi.

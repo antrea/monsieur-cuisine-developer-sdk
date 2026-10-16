@@ -1,17 +1,16 @@
 # Compatibility and Verification Scope
 
-The SDK targets Python **3.11+** on Windows, Linux and macOS using one Python/Tk codebase. A target is not the same as an executed result. This page separates local evidence, prepared CI and device-profile compatibility.
+The SDK targets Python **3.11+** on Windows, Linux and macOS using one Python/Tk codebase. This page separates completed local/hosted evidence and device-profile compatibility. Later interpreter versions require their own verification.
 
 | Environment | Executed verification |
 |---|---|
 | Windows 11, CPython 3.12.14, Tk 8.6 | Local Python API, CLI, all 97 tests, real native GUI, loopback and isolated wheel installation passed |
-| Linux and macOS | GitHub Actions matrix prepared; see the workflow results for actual execution. No local result is inferred from configuration |
-| Python 3.11, 3.13 and 3.14 | Included in the hosted matrix; local checks above used 3.12.14 |
+| GitHub-hosted Windows, Linux and macOS, CPython 3.11–3.14 | All **12 combinations passed** the source audit, 97 tests with real Tk/display, wheel build and isolated installed API/CLI/GUI verification |
 | Android 30 x86_64 ART | Actual debug demo Activity controlled both profiles through the real Tk desktop, including STOP, errors and lifecycle |
 | JVM / Android build | JDK 21 build, Java 17 SDK bytecode, Kotlin/JVM tests, independent packaged consumers and debug/instrumentation APK compilation passed locally |
 | Physical MCC/MCS | Not tested by this simulator release; no physical UART transport or safety certification |
 
-The [workflow](../.github/workflows/ci.yml) runs Windows/Linux/macOS across Python 3.11–3.14. A pending or failed run is not platform verification. The [test record](tests.md) and [release audit](../RELEASE_AUDIT.md) identify completed checks.
+The [completed hosted run](https://github.com/antrea/monsieur-cuisine-developer-sdk/actions/runs/38873336351), on commit `b37d4ad`, passed all 13 jobs, including Android SDK/demo compilation, Kotlin/JVM tests and both binary client integrations. This does not imply Android instrumentation was executed on hosted CI: the ART/Activity evidence above was obtained separately. The [workflow](../.github/workflows/ci.yml), [test record](tests.md) and [release audit](../RELEASE_AUDIT.md) distinguish those scopes.
 
 ## Platform requirements
 
