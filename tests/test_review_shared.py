@@ -466,7 +466,10 @@ class SharedTcpIndependentReview(unittest.TestCase):
                 finally:bridge.close()
 
 
-class SharedGuiIndependentReview(unittest.TestCase):
+from gui_process import NativeGuiTestCase
+
+
+class SharedGuiIndependentReview(NativeGuiTestCase):
     def setUp(self):
         import tkinter as tk
         from monsieur_cuisine_sdk.gui import DesktopApp

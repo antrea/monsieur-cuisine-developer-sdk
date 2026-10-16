@@ -1,10 +1,14 @@
 """Final acceptance checks across the public facade and the actual desktop."""
 from pathlib import Path
 import os
+import select
 import socket
 import subprocess
 import sys
+import time
 import unittest
+
+from gui_process import NativeGuiTestCase
 
 from monsieur_cuisine_sdk import DeviceModel, DigitalTwin, replay
 from monsieur_cuisine_sdk.scenarios import SCENARIOS, run_scenario
@@ -44,33 +48,43 @@ print("OFFLINE PASS")
                                      result['final_state'])
 
 
-class DesktopSwitchAcceptance(unittest.TestCase):
+class DesktopSwitchAcceptance(NativeGuiTestCase):
     def test_both_connected_roundtrip_switch_sequences(self):
         import tkinter as tk
         from monsieur_cuisine_sdk.gui import DesktopApp, MODELS
-        for initial in DeviceModel:
-            with self.subTest(initial=initial.value):
-                root = tk.Tk()
-                app = DesktopApp(root, DigitalTwin(initial))
-                app.running = False
-                clients = []
-                try:
+        root = tk.Tk()
+        app = DesktopApp(root)
+        app.running = False
+        clients = []
+        try:
+            for initial in DeviceModel:
+                with self.subTest(initial=initial.value):
+                    app.model_var.set(next(label for label, model in MODELS.items()
+                                           if model == initial))
+                    app.change_model()
                     opposite = DeviceModel.MCS if initial == DeviceModel.MCC else DeviceModel.MCC
                     for selected in (opposite, initial):
                         connection = app.enable_android(port=0)
                         client = socket.create_connection(connection.address, timeout=1)
                         clients.append(client);client.settimeout(1)
-                        for _ in range(4):connection.poll()
+                        def wait_for(predicate):
+                            deadline = time.monotonic() + 2
+                            while not predicate():
+                                connection.poll()
+                                if time.monotonic() >= deadline:
+                                    self.fail('loopback operation did not complete before deadline')
+                                time.sleep(.001)
+                        wait_for(lambda: connection.client is not None)
                         old = app.twin.profile
                         old_start = old.encode_start(3, 'cw', 60)
                         client.sendall(old_start)
-                        for _ in range(4):connection.poll()
+                        wait_for(lambda: bool(select.select([client], [], [], 0)[0]))
                         self.assertTrue(client.recv(4096))
                         app.twin.advance(.2)
                         app.twin.set_faults(delay_seconds=5)
                         app.twin.sample()
                         client.sendall(old_start[:7])
-                        for _ in range(4):connection.poll()
+                        wait_for(lambda: app.twin.buffered_bytes == 7)
                         old_generation = app.twin.generation
                         app.model_var.set(next(label for label, model in MODELS.items()
                                                if model == selected))
@@ -89,9 +103,9 @@ class DesktopSwitchAcceptance(unittest.TestCase):
                         self.assertEqual((app.twin.get_state().actual_rpm is None),
                                          selected == DeviceModel.MCS)
                     self.assertEqual(app.twin.model, initial)
-                finally:
-                    for client in clients:client.close()
-                    app.close()
+        finally:
+            for client in clients:client.close()
+            app.close()
 
 
 if __name__ == '__main__':

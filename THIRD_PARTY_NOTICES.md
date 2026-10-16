@@ -2,6 +2,8 @@
 
 Original unified SDK code, explanatory documentation and synthetic data use the root [MIT license](LICENSE), preserving both MCC Developer Toolkit and MCS Developer Toolkit contributor notices.
 
+The MIT license applies to original toolkit/SDK code, explanatory documentation and synthetic data. No rights in manufacturer software, firmware, recipes or trademarks are granted. Included third-party material retains its own terms and notices.
+
 The unmodified official Gradle wrapper is the included third-party build bootstrap. Its Apache 2.0 license and notices are retained under `android/gradle/wrapper`; [Android third-party notices](android/THIRD_PARTY_NOTICES.md) identify the wrapper, pinned distribution checksum and externally resolved Kotlin/Android/JUnit dependencies. Dependency terms are not replaced by the SDK's MIT license. Python, Tcl/Tk, JDK, Android SDK/emulator, Gradle distribution and resolved build dependencies are externally obtained tools, not bundled runtime distributions in this source tree.
 
 Research references remain attributed, with examined revisions and observed licensing scope, in [MCC references](docs/devices/mcc/third-party-references.md) and [MCS community references](docs/devices/mcs/research/en/community.md). Those projects are references, not vendored code. Public repository visibility alone does not authorize copying code or media.
