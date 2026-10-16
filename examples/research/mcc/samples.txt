@@ -1,0 +1,8 @@
+# Synthetic test vectors only; not captured from a device.
+# Canonical STOP (clockwise field retained as zero on wire).
+55 0F A1 00 00 00 00 00 00 00 00 00 00 05 AA
+# Standard, speed level 2, counter-clockwise, heater off.
+55 0F A1 01 00 02 00 00 00 00 00 01 00 09 AA
+# Stationary synthetic RX: 20 C, signed weight -100, firmware value 4924,
+# unknown byte 24 = A5. This value is a fixture, not a firmware identification.
+55 1B B1 4C 00 00 00 00 00 00 00 00 00 00 00 14 FF FF FF 9C 13 3C 02 00 A5 10 AA

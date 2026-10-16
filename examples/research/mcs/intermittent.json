@@ -1,0 +1,94 @@
+{
+  "format_version": 1,
+  "name": "intermittent",
+  "seed": 7,
+  "duration": 12,
+  "events": [
+    {
+      "at": 0,
+      "action": "operation",
+      "values": {
+        "function": 0,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 1,
+      "action": "operation",
+      "values": {
+        "function": 1,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 2,
+      "action": "operation",
+      "values": {
+        "function": 0,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 3,
+      "action": "operation",
+      "values": {
+        "function": 1,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 4,
+      "action": "operation",
+      "values": {
+        "function": 0,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 5,
+      "action": "operation",
+      "values": {
+        "function": 1,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 6,
+      "action": "operation",
+      "values": {
+        "function": 0,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 7,
+      "action": "operation",
+      "values": {
+        "function": 1,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 8,
+      "action": "operation",
+      "values": {
+        "function": 0,
+        "speed_level": 6
+      }
+    },
+    {
+      "at": 9,
+      "action": "operation",
+      "values": {
+        "function": 1,
+        "speed_level": 6
+      }
+    }
+  ],
+  "expect": [
+    {
+      "field": "actual_level",
+      "value": 6
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "format_version": 1,
+  "name": "Synthetic reversal and tare",
+  "seed": 7,
+  "duration": 8,
+  "events": [
+    {
+      "at": 0,
+      "action": "manual",
+      "values": {
+        "speed": 4,
+        "temperature": 60,
+        "seconds": 30
+      }
+    },
+    {
+      "at": 2,
+      "action": "sensors",
+      "values": {
+        "mass": 450
+      }
+    },
+    {
+      "at": 3,
+      "action": "operation",
+      "values": {
+        "opcode": 2051,
+        "scale_mode": 1
+      }
+    },
+    {
+      "at": 4,
+      "action": "manual",
+      "values": {
+        "speed": 3,
+        "reverse": true,
+        "seconds": 30
+      }
+    },
+    {
+      "at": 7,
+      "action": "operation",
+      "values": {
+        "function": 0
+      }
+    }
+  ],
+  "expect": [
+    {
+      "field": "actual_level",
+      "value": 0
+    },
+    {
+      "field": "weight",
+      "value": 0
+    }
+  ]
+}

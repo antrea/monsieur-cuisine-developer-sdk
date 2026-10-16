@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monsieur-cuisine-developer-sdk"
+version = "0.1.0"
+description = "One offline Python and Android development SDK and native Digital Twin for MCC and MCS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "BlackStuff Labs and Monsieur Cuisine Developer SDK contributors"}]
+dependencies = []
+classifiers = ["Programming Language :: Python :: 3 :: Only", "Operating System :: OS Independent", "Development Status :: 3 - Alpha"]
+
+[project.scripts]
+mc-sdk = "monsieur_cuisine_sdk.cli:main"
+monsieur-cuisine-digital-twin = "monsieur_cuisine_sdk.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/antrea/monsieur-cuisine-developer-sdk"
+Documentation = "https://github.com/antrea/monsieur-cuisine-developer-sdk/tree/main/docs"
+Issues = "https://github.com/antrea/monsieur-cuisine-developer-sdk/issues"
+Funding = "https://ko-fi.com/blackstufflabs"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+monsieur_cuisine_sdk = ["py.typed", "data/*.json"]

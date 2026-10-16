@@ -1,0 +1,2048 @@
+{
+  "format": "mcc-powerboard-recording-v1",
+  "synthetic": true,
+  "initial_config": {
+    "acceleration_rpm_s": 4000.0,
+    "deceleration_rpm_s": 6000.0,
+    "coast_deceleration_rpm_s": 1000.0,
+    "heating_c_s": 1.0,
+    "cooling_c_s": 0.1,
+    "ambient_c": 20.0,
+    "speed_rpm": [
+      0,
+      200,
+      700,
+      1200,
+      2000,
+      4500,
+      7500,
+      10500,
+      13500,
+      16500,
+      19000
+    ]
+  },
+  "events": [
+    {
+      "operation": "set_sensors",
+      "input": {
+        "weight": 250,
+        "firmware_version": 4924
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 0,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000000000000000014000000fa133c020000ccaa"
+      ],
+      "checkpoint": {
+        "now_ms": 0,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "feed",
+      "input": {
+        "hex": "550fa10100030000000000000009aa"
+      },
+      "rx_hex": [
+        "551bb14f00000304b000000000000014000000fa133c02000086aa"
+      ],
+      "checkpoint": {
+        "now_ms": 0,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 100,
+        "velocity_rpm": 400.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 400,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b001900000000014000000fa133c02000017aa"
+      ],
+      "checkpoint": {
+        "now_ms": 100,
+        "velocity_rpm": 400.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 400,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 200,
+        "velocity_rpm": 800.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 800,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b003200000000014000000fa133c020000a9aa"
+      ],
+      "checkpoint": {
+        "now_ms": 200,
+        "velocity_rpm": 800.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 800,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 300,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 300,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 400,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 400,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 500,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 500,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 600,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 600,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 700,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 700,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 800,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 800,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 900,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 900,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1000,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14f00000304b004b00000000014000000fa133c0200003aaa"
+      ],
+      "checkpoint": {
+        "now_ms": 1000,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 3,
+          "target_rpm": 1200,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": true,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "feed",
+      "input": {
+        "hex": "550fa10000000000000000000005aa"
+      },
+      "rx_hex": [
+        "551bb14c000000000004b00000000014000000fa133c02000080aa"
+      ],
+      "checkpoint": {
+        "now_ms": 1000,
+        "velocity_rpm": 1200.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 1200,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1100,
+        "velocity_rpm": 600.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 600,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000002580000000014000000fa133c02000026aa"
+      ],
+      "checkpoint": {
+        "now_ms": 1100,
+        "velocity_rpm": 600.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 600,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1200,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000000000000000014000000fa133c020000ccaa"
+      ],
+      "checkpoint": {
+        "now_ms": 1200,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1300,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000000000000000014000000fa133c020000ccaa"
+      ],
+      "checkpoint": {
+        "now_ms": 1300,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1400,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000000000000000014000000fa133c020000ccaa"
+      ],
+      "checkpoint": {
+        "now_ms": 1400,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "advance",
+      "input": {
+        "milliseconds": 100
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1500,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb14c000000000000000000000014000000fa133c020000ccaa"
+      ],
+      "checkpoint": {
+        "now_ms": 1500,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": false,
+          "error_code": 0,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "set_sensors",
+      "input": {
+        "error_code": 5
+      },
+      "rx_hex": [],
+      "checkpoint": {
+        "now_ms": 1500,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": true,
+          "error_code": 5,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    },
+    {
+      "operation": "sample",
+      "input": {},
+      "rx_hex": [
+        "551bb15c000500000000000000000014000000fa133c020000e1aa"
+      ],
+      "checkpoint": {
+        "now_ms": 1500,
+        "velocity_rpm": 0.0,
+        "controller": {
+          "requested_speed_level": 0,
+          "target_rpm": 0,
+          "actual_rpm": 0,
+          "requested_temperature_level": 0,
+          "target_temperature": 0,
+          "actual_temperature": 20,
+          "weight": 250,
+          "firmware_version": 4924,
+          "direction": 1,
+          "motor_on": false,
+          "heater_on": false,
+          "lid_open": false,
+          "error_detected": true,
+          "error_code": 5,
+          "scale_stable": true,
+          "above_target_temperature": false,
+          "bowl_ntc_detected": true,
+          "extended_state": 0,
+          "scale_state_raw": 2,
+          "calibration_step": 0,
+          "unknown_byte_24": 0
+        },
+        "physics": {
+          "acceleration_rpm_s": 4000.0,
+          "deceleration_rpm_s": 6000.0,
+          "coast_deceleration_rpm_s": 1000.0,
+          "heating_c_s": 1.0,
+          "cooling_c_s": 0.1,
+          "ambient_c": 20.0,
+          "speed_rpm": [
+            0,
+            200,
+            700,
+            1200,
+            2000,
+            4500,
+            7500,
+            10500,
+            13500,
+            16500,
+            19000
+          ]
+        },
+        "connected": true
+      }
+    }
+  ]
+}

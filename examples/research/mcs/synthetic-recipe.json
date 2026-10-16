@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "format": "toolkit tutorial model, not OEM import",
+  "name": "Water mixing demonstration",
+  "steps": [
+    {
+      "speed": 2,
+      "temperature": 40,
+      "seconds": 10
+    },
+    {
+      "speed": 0,
+      "temperature": 0,
+      "seconds": 0
+    }
+  ]
+}

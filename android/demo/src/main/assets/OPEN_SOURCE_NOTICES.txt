@@ -1,0 +1,10 @@
+Monsieur Cuisine Developer SDK — BlackStuff Labs
+Original application and SDK code: MIT License; see the repository LICENSE.
+
+Includes Kotlin standard library 2.3.21 by JetBrains s.r.o. and Kotlin contributors,
+licensed under the Apache License, Version 2.0. Source:
+https://github.com/JetBrains/kotlin/tree/v2.3.21/libraries/stdlib
+The license text is included as APACHE_LICENSE_2.0.txt.
+
+Independent experimental developer application. No manufacturer code,
+firmware, recipes, logos or assets are included.

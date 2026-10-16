@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "name": "link-faults",
+  "seed": 7,
+  "duration": 4,
+  "events": [
+    {
+      "at": 0,
+      "action": "faults",
+      "values": {
+        "drop_next": 1
+      }
+    },
+    {
+      "at": 0,
+      "action": "manual",
+      "values": {
+        "speed": 3
+      }
+    },
+    {
+      "at": 1,
+      "action": "faults",
+      "values": {
+        "delay_seconds": 1
+      }
+    },
+    {
+      "at": 1,
+      "action": "operation",
+      "values": {
+        "opcode": 2049
+      }
+    },
+    {
+      "at": 3,
+      "action": "ready"
+    }
+  ],
+  "expect": [
+    {
+      "field": "actual_level",
+      "value": 6
+    }
+  ]
+}

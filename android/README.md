@@ -1,0 +1,90 @@
+# Monsieur Cuisine Android Developer SDK
+
+One Android Studio project, one Kotlin client, one duplex TCP transport and one native demo support an explicitly selected MCC or MCS model. Each model retains its original binary codec and stream parser. The project is an independent developer simulator; it supplies no physical serial driver, manufacturer service or firmware flasher.
+
+## Build
+
+Use JDK 17 or 21, Android SDK platform 35 and build-tools 35.0.0. Set `ANDROID_HOME` to your licensed local SDK installation, or set `sdk.dir` in an untracked `local.properties`. Open this directory in Android Studio.
+
+```sh
+./gradlew :sdk:test :sdk:assemble :demo:assembleDebug :demo:assembleDebugAndroidTest
+```
+
+On Windows use `gradlew.bat`. Gradle 8.13's distribution checksum is pinned. Kotlin 2.3.21 and Android Gradle Plugin 8.13.2 are declared once at the project root. Android dependency installation is disabled; install required SDK packages separately. The JVM SDK can also be tested with `-PincludeAndroidDemo=false` (the root build still resolves its declared plugins).
+
+The SDK JAR is `sdk/build/libs/sdk-0.1.0.jar`; it needs the Kotlin standard library on its runtime classpath. The installable developer APK is `demo/build/outputs/apk/debug/demo-debug.apk`. Release APK output is unsigned and intentionally disables the demo connection. No signing keys are supplied.
+
+## Open and run in Android Studio
+
+1. Open the repository's `android` directory, containing `settings.gradle.kts`, as the Android Studio project. Let Gradle sync complete. Use JDK 17 or 21 for Gradle and install the SDK packages listed above if they are missing.
+2. Start a standard Android Studio emulator running API 26 or newer. Select the `demo` application and its **debug** build variant, then Run it on that emulator. The release variant deliberately refuses the simulation connection.
+3. On the desktop, start the Python application with `python -m monsieur_cuisine_sdk`, select **MCC** or **MCS**, and enable **Android Connection** in that same window. See the repository [quick start](../README.md) for Python installation.
+4. Select the same model in the Android demo. Use port **8765 for MCC** or **8766 for MCS**, matching the desktop listener, and press **Connect**. The demo automatically uses **10.0.2.2**, the emulator's address for the desktop host. The desktop listener binds **127.0.0.1**; do not change that bind address to 10.0.2.2.
+5. Choose speed, direction and an offered temperature, then press **START / apply**. Observe the synthetic state and HEX frames in both applications. Press **STOP**, wait for observed motion to reach zero, and disconnect when finished. Changing the model or backgrounding the Android app disconnects it.
+
+If connection fails, check that the desktop connection is enabled, the selected model and port match, and the Android build is debug. This demo targets the standard emulator's host connection; its endpoint policy does not support a physical phone's LAN address.
+
+## Use the packaged SDK in another Android app
+
+The demo in this repository uses a Gradle project dependency. Your own application can consume the packaged JAR independently:
+
+1. Run `./gradlew :sdk:assemble` from this directory (`gradlew.bat` on Windows).
+2. Copy `sdk/build/libs/sdk-0.1.0.jar` into your application's `app/libs` directory.
+3. Add these dependencies to your application's `app/build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation(files("libs/sdk-0.1.0.jar"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")
+}
+```
+
+Use Java 17 bytecode compatibility, as in this project's demo. Kotlin consumers should use a compiler compatible with the library's Kotlin 2.3.21 metadata. A plain JAR does not declare transitive dependencies, so include the Kotlin standard library explicitly. Use the normal SDK JAR for this dependency; `host-tests` and `codec-probe` JARs are development harnesses containing test libraries.
+
+Import `org.blackstufflabs.monsieurcuisine` classes and use the public API below. Start with `MockTransport(model)` for an offline frame fixture, or `TwinTcpTransport` for the explicit desktop connection. When using TCP, keep blocking calls on a worker thread, include your app's Internet permission, and choose an explicit transport policy for your application. A separate Android consumer built from only the packaged SDK JAR and Kotlin standard library has been compiled and executed for both models; it does not need this repository's SDK source directories.
+
+## Public API
+
+```kotlin
+import org.blackstufflabs.monsieurcuisine.*
+
+val model = DeviceModel.MCC // or MCS; never inferred from received bytes
+val transport = TwinTcpTransport(TwinEndpoint("10.0.2.2", model.defaultPort), model)
+val client = MonsieurCuisineClient(model, transport)
+
+// All blocking operations belong on a worker thread.
+client.connect()
+val initial = client.readState() // null until an observation is received
+client.startMotor(3, MotorDirection.COUNTER_CLOCKWISE, temperatureC = 60)
+val observation = client.receiveState()
+val cached = client.readState() // no new wire query
+client.stopMotor()
+client.close()
+```
+
+MCC duration must be zero because that protocol has no timer field. MCS supports a manual duration of 0–5940 seconds. Temperatures must be exact entries in `client.capabilities.temperaturesC`; the two tables differ. MCS `receiveState` sends the documented state request at most four times per second within the caller's timeout; unsolicited observations drain independently of polling. MCC receives its existing telemetry stream without inventing a request. Successful command methods mean bytes were written, never a confirmed physical action. MCS sequence is preserved, including skipping 0x66, but is not advertised as an acknowledgment correlation key.
+
+`DeviceState` includes the selected model, raw HEX, session generation, arrival time and model-specific raw fields. MCC observed speed is RPM; MCS observed speed is a signed raw motor level, with an explicit unit. No MCS RPM is fabricated. `weightGrams` is nullable for unknown MCS weight-unit codes; raw value, decimal places and unit code remain available. Unit 0 means grams for the synthetic twin's explicit default, not a hardware-verified conversion table.
+
+`MockTransport(model)` is an explicit queued frame fixture, not an appliance model. `HardwareTransport` is only an interface. The TCP endpoint policy accepts literal `127.0.0.1` or Android emulator alias `10.0.2.2`; it cannot select a LAN address or hostname. Default ports are MCC 8765 and MCS 8766.
+
+## Lifecycle and demo
+
+There is one reader, serialized copied writes, bounded receive and command queues, and explicit reconnect. Closing a socket cancels blocked I/O. An ordinary receive timeout retains the connection and does not retry a command. Reconnect clears cached observations and requested output. Frames and UI work carry session generations. Cached reads return null when disconnected or failed.
+
+The native demo has one model selector and common controls. Selecting another model disconnects before the next explicit Connect. STOP invalidates pending commands; an already executing write cannot be undone. Backgrounding the Activity disconnects. Display updates coalesce the latest telemetry, cap pending HEX lines at 64 and refresh at most every 50 ms, so high-rate input cannot grow the main-thread callback queue without bound. TCP is enabled only by an explicit debug-build code guard: a manifest cleartext flag alone cannot enforce raw `Socket` policy.
+
+## Validation
+
+The test suite retains the two original codec suites and their frozen vectors and adds shared transport/client/lifecycle/STOP-queue tests. Run `:sdk:hostJar` to build a private integration harness and invoke `org.blackstufflabs.monsieurcuisine.HostExercise MCC 8765` (or MCS 8766) from its runtime JAR.
+
+The instrumented test launches the actual demo Activity and drives its visible controls. With the shared Python twin listening on the selected port, run:
+
+```sh
+adb shell am instrument -w -r -e model MCC -e port 8765 \
+  org.blackstufflabs.monsieurcuisine.demo.debug.test/org.blackstufflabs.monsieurcuisine.demo.BridgeInstrumentation
+```
+
+The host must inject error code 3 through its ordinary sensor API after the `AWAIT_HOST_ERROR` marker. Repeat with MCS and port 8766. This covers actual Android controls and original binary frames, both model-selector directions, start, speed change, telemetry, STOP, a host-injected fault, reconnect while disarmed and background cancellation. An emulator success does not verify physical UART behavior or an appliance's safety interlocks.
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) and the repository license.

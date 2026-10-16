@@ -1,0 +1,309 @@
+{
+  "artifact_sha256": "5e9125bb5e618e8eb989bfff8096f09cbad5e4fd3e5b08768fd624f36efc0482",
+  "version_name": "1.1.28-release",
+  "version_code": 292,
+  "authority": "static analysis of shipped APK; not a capture or firmware specification",
+  "source": "machineAdapter.impl.hal.PowerBoard.getSendPayload()[B and response getters; DEX/Smali static observations",
+  "transport": {
+    "path": "/dev/ttyMT0",
+    "baud": 4800,
+    "mode": "raw",
+    "open_flags": "O_RDWR",
+    "full_8N1_proven": false
+  },
+  "android_direction": {
+    "counter_clockwise": 0,
+    "clockwise": 1,
+    "not_available": 2
+  },
+  "tx": {
+    "size": 15,
+    "offset_base": 0,
+    "fixed_bytes": {
+      "0": 85,
+      "1": 15,
+      "2": 161,
+      "14": 170
+    },
+    "fields": {
+      "operation": 3,
+      "tare": 4,
+      "speed_level": 5,
+      "temperature_level": 6,
+      "wire_direction": 11,
+      "scale_calibration": 12,
+      "checksum": 13
+    },
+    "reserved_zero_offsets": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "operations": {
+      "MOTOR_ON_HEATER_ON": 1,
+      "MOTOR_OFF_HEATER_OFF": 0,
+      "MOTOR_OFF_HEATER_ON": 1,
+      "TURBO": 198,
+      "STEAM": 3,
+      "TOAST": 4,
+      "KNEAD": 5,
+      "SLEEP": 15
+    },
+    "speed_serializer_range": [
+      0,
+      10
+    ],
+    "temperature_serializer_range": [
+      0,
+      19
+    ],
+    "out_of_range_encoding": 0,
+    "wire_direction": {
+      "clockwise": 0,
+      "counter_clockwise": 1
+    },
+    "tare_value": 169,
+    "calibration": {
+      "EXIT": 0,
+      "ENTER": 230,
+      "START": 233
+    },
+    "calibration_enter_start_zero_offsets_inclusive": [
+      3,
+      11
+    ],
+    "checksum": {
+      "algorithm": "sum unsigned bytes modulo256",
+      "first_offset": 0,
+      "last_offset": 12
+    }
+  },
+  "rx": {
+    "size": 27,
+    "offset_base": 0,
+    "fixed_bytes": {
+      "0": 85,
+      "1": 27,
+      "2": 177,
+      "26": 170
+    },
+    "status_offset": 3,
+    "status_masks": {
+      "motor_heater_state": 3,
+      "scale_stable": 4,
+      "clockwise": 8,
+      "error": 16,
+      "above_target_temperature": 32,
+      "bowl_NTC_detected": 64,
+      "lid_open": 128
+    },
+    "motor_heater_state_values": {
+      "0": "motor_off_heater_off",
+      "1": "motor_on_heater_on",
+      "2": "motor_off_heater_on",
+      "3": "motor_on_heater_off_turbo"
+    },
+    "extended_state_offset": 4,
+    "extended_state_values": {
+      "3": "STEAM",
+      "4": "TOAST",
+      "5": "KNEAD"
+    },
+    "error_offset": 5,
+    "error_to_ipc": {
+      "1": 1,
+      "3": 2,
+      "4": 3,
+      "5": 4,
+      "6": 5,
+      "7": 12,
+      "8": 13
+    },
+    "target_speed_level_offset": 6,
+    "target_rpm_uint16_be_offset": 7,
+    "actual_rpm_uint16_be_offset": 9,
+    "target_temperature_level_offset": 11,
+    "target_temperature_uint16_be_offset": 12,
+    "actual_temperature_uint16_be_offset": 14,
+    "weight_int32_be_offset": 16,
+    "firmware_uint16_be_offset": 20,
+    "scale_state_offset": 22,
+    "scale_state_priority_masks": [
+      4,
+      1,
+      2
+    ],
+    "scale_calibration_step_offset": 23,
+    "unknown_semantics_offset": 24,
+    "checksum": {
+      "offset": 25,
+      "algorithm": "sum unsigned bytes modulo256",
+      "first_offset": 0,
+      "last_offset": 24
+    },
+    "request_correlation_or_sequence_found": false,
+    "scale_state_unmatched_android_fallback": "OVERLOAD",
+    "scale_state_unmatched_toolkit_interpretation": "not_available; original Android fallback retained separately",
+    "scale_calibration_step_values": {
+      "0": "INITIALIZING",
+      "1": "ZERO_POINT",
+      "2": "FIRST_LOAD_1_KG",
+      "3": "SECOND_LOAD_3_KG",
+      "4": "SUCCESS",
+      "5": "OVERLOAD",
+      "7": "FAILURE",
+      "other": "NOT_AVAILABLE"
+    },
+    "unknown_byte_24": {
+      "semantics": "unknown",
+      "original_getter": "getNotAvailable()I",
+      "original_java_representation": "signed byte widened to int",
+      "toolkit_representation": "raw unsigned byte, with optional signed view",
+      "physical_meaning_identified": false
+    },
+    "target_level_signed_views": {
+      "canonical_raw_representation": "unsigned byte 0..255",
+      "original_java_representation": "direct byte load sign-extended to int, -128..127",
+      "target_speed_level_offset": 6,
+      "target_speed_level_getter": "getTargetSpeedLevel()I",
+      "target_speed_level_toolkit_signed_property": "target_speed_level_signed",
+      "target_temperature_level_offset": 11,
+      "target_temperature_level_getter": "getTargetTemperatureLevel()I",
+      "target_temperature_level_toolkit_signed_property": "target_temperature_level_signed",
+      "example_raw_byte_hex": "F4",
+      "example_raw_unsigned": 244,
+      "example_original_java_signed": -12,
+      "scope": "Compatibility views; negative operating levels are not defined"
+    }
+  },
+  "temperature_levels_celsius": [
+    0,
+    37,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100,
+    105,
+    110,
+    115,
+    120,
+    125,
+    130
+  ],
+  "nominal_host_timing_ms": {
+    "hardware_loop_sleep": 100,
+    "serial_reader_sleep": 500,
+    "cooking_timer_tick": 1000,
+    "manual_pause_autostop": 30000
+  },
+  "unproven": [
+    "controller watchdog",
+    "physical braking time",
+    "safe repeated-start duty cycle",
+    "full UART line settings",
+    "installed device artifact identity",
+    "hardware interlock implementation"
+  ],
+  "provenance": {
+    "evidence_class": "static-observation",
+    "evidence_document": "../docs/research-methodology.md",
+    "apk_package": "de.silpion.mc2",
+    "serializer": "machineAdapter.impl.hal.PowerBoard.getSendPayload()[B",
+    "validator": "machineAdapter.impl.hal.PowerBoard.areDataCorrect([B)Z",
+    "receive_getters_class": "machineAdapter.impl.hal.PowerBoard",
+    "hardware_service": "machineAdapter.impl.service.HardwareMachineService",
+    "serializer_caller": "machineAdapter.impl.service.HardwareMachineService.onPerformPeriodicHardwareAction()V",
+    "dex_entry": "classes.dex",
+    "caller_dex_code_unit_offset": 15,
+    "target_dex_method_index": 34244,
+    "powerboard_smali_sha256": "78a8c1d7f43d11c9f74d3ae9cb96d783abac027f133263ddbf6f229f1c35ac1e",
+    "powerboard_jadx_sha256": "d7f660e599c2464f41fa8e1cc73141c05e35302a1662ed4c5ad523295efbc02b",
+    "evidence_date": "2026-10-16",
+    "scope": "Host serializer/decoder; no physical capture or certified controller specification"
+  },
+  "android_work_mode_to_operation": {
+    "0": 0,
+    "1": 1,
+    "2": 198,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 15
+  },
+  "actual_rpm_display_level_buckets": [
+    {
+      "level": 0,
+      "maximum_rpm": 0
+    },
+    {
+      "level": 1,
+      "minimum_rpm": 1,
+      "maximum_rpm": 558
+    },
+    {
+      "level": 2,
+      "minimum_rpm": 559,
+      "maximum_rpm": 1008
+    },
+    {
+      "level": 3,
+      "minimum_rpm": 1009,
+      "maximum_rpm": 1437
+    },
+    {
+      "level": 4,
+      "minimum_rpm": 1438,
+      "maximum_rpm": 3359
+    },
+    {
+      "level": 5,
+      "minimum_rpm": 3360,
+      "maximum_rpm": 6349
+    },
+    {
+      "level": 6,
+      "minimum_rpm": 6350,
+      "maximum_rpm": 9309
+    },
+    {
+      "level": 7,
+      "minimum_rpm": 9310,
+      "maximum_rpm": 12312
+    },
+    {
+      "level": 8,
+      "minimum_rpm": 12313,
+      "maximum_rpm": 15315
+    },
+    {
+      "level": 9,
+      "minimum_rpm": 15316,
+      "maximum_rpm": 18232
+    },
+    {
+      "level": 10,
+      "minimum_rpm": 18233
+    }
+  ],
+  "unknowns": [
+    "RX offset24 physical meaning",
+    "Scale-state unused bits",
+    "Exact motor target RPM for each requested speed level",
+    "MCU model and firmware implementation",
+    "Controller watchdog and braking time",
+    "Safe repeated-start duty cycle",
+    "Bootloader/erase/program/verify/reboot protocol",
+    "Complete UART electrical and line settings",
+    "MCUpdater implementation and install policy",
+    "Byte identity with any installed appliance APK"
+  ]
+}

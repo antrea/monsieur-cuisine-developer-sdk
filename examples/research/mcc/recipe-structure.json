@@ -1,0 +1,25 @@
+[
+  {
+    "id": -1,
+    "name": "Synthetic structure demonstration; not a cooking recipe",
+    "language": "en",
+    "ingredientsBases": [],
+    "instructions": [],
+    "guidedCooking": {
+      "steps": [
+        {
+          "step": 1,
+          "mode": "illustrative-only-not-a-vendor-mode",
+          "text": "Fictional data-format record. Do not execute on an appliance.",
+          "machineValues": {
+            "reverse": false,
+            "speed": 0,
+            "temp": 0,
+            "time": 0,
+            "weight": 0
+          }
+        }
+      ]
+    }
+  }
+]

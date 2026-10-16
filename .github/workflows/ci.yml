@@ -1,0 +1,85 @@
+name: SDK checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python ${{ matrix.python }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        python: ['3.11', '3.12', '3.13', '3.14']
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Linux display libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb xauth
+      - name: Build tooling only
+        run: python -m pip install 'setuptools>=77'
+      - name: Source content, links, JSON, syntax and offline imports
+        run: python tools/audit_release.py --runtime
+      - name: Native Tk display preflight
+        if: runner.os != 'Linux'
+        run: python -c "import sys,tkinter as tk; root=tk.Tk(); root.update(); print(sys.version, tk.TkVersion, root.tk.call('info','patchlevel')); root.destroy()"
+      - name: Tk display preflight on Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python -c "import sys,tkinter as tk; root=tk.Tk(); root.update(); print(sys.version, tk.TkVersion, root.tk.call('info','patchlevel')); root.destroy()"
+      - name: Source tests with actual display
+        if: runner.os != 'Linux'
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Source tests on Xvfb
+        if: runner.os == 'Linux'
+        env:
+          PYTHONPATH: src
+        run: xvfb-run -a python -m unittest discover -s tests -v
+      - name: Clean source archive, wheel and standalone installed API/CLI/GUI
+        if: runner.os != 'Linux'
+        run: python tools/build_release.py --output '${{ runner.temp }}/mc-sdk-release' --wheel --verify-wheel --verify-gui
+      - name: Clean installed GUI on Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python tools/build_release.py --output '${{ runner.temp }}/mc-sdk-release' --wheel --verify-wheel --verify-gui
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - name: Python source content audit
+        run: python tools/audit_release.py --runtime
+      - name: Explicit Android compile platform
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
+      - name: Kotlin JVM tests, SDK JAR and Android debug/instrumentation compilation
+        working-directory: android
+        run: bash gradlew :sdk:test :sdk:jar :sdk:sourcesJar :sdk:hostJar :demo:assembleDebug :demo:assembleDebugAndroidTest --no-daemon
+      - name: Both Kotlin JVM clients against actual binary Python sessions
+        run: |
+          python tools/verify_android.py --model mcc
+          python tools/verify_android.py --model mcs
+      # Hosted CI and Android instrumentation/emulator execution are not claimed
+      # until an actual hosted run provides results. No publish/signing step exists.

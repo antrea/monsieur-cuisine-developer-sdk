@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a focused improvement to the developer toolkit.
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Developer need
+      description: Describe the problem, affected profile and workflow.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and evidence
+      description: Separate established protocol facts from synthetic model ideas or unknown hardware behavior.
+    validations:
+      required: true

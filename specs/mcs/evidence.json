@@ -1,0 +1,48 @@
+{
+  "format_version": 1,
+  "scope": "Historical static research and synthetic tests",
+  "items": [
+    {
+      "id": "E01",
+      "claim": "OB envelope and operational layouts",
+      "level": "CONFIRMED_IN_APK",
+      "artifact_sha256": "6ad1e58869eb4287a6f8b0fa0cb931941fe527e8e4b661f2f86fc005548518ef",
+      "source_symbols": [
+        "MultoSerialPortCommand",
+        "MCCommandSetting.pickStruct",
+        "multo.structs.OperationStruct"
+      ]
+    },
+    {
+      "id": "E02",
+      "claim": "900 seeded envelope vectors matched isolated recovered serializer",
+      "level": "CONFIRMED_IN_APK",
+      "seed": 20261016,
+      "payload_sizes": [
+        2,
+        18,
+        26,
+        30,
+        39,
+        260
+      ],
+      "method_source_sha256": "f8044c94eec3272b2ce5a808223f9e759269861c27e4ab7e69b62d401dd5b834",
+      "scope": "Envelope/checksum only. Public fixtures regenerate identical inputs; proprietary harness excluded."
+    },
+    {
+      "id": "E03",
+      "claim": "Motor/thermal/scale dynamics and synthetic OTA policy",
+      "level": "INFERRED"
+    },
+    {
+      "id": "E04",
+      "claim": "Physical RPM, MCU image/ISA, electrical UART levels, bootloader",
+      "level": "UNKNOWN"
+    }
+  ],
+  "baseline_codec_sha256": "546754ca6d35619222f73acbe4a51194d01ec513aabaee2d04e94ab05fd68300",
+  "original_tests": 46,
+  "portable_tests_reused": 44,
+  "private_source_tests_not_distributed": 2,
+  "hardware_verified_items": 0
+}

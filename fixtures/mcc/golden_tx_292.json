@@ -1,0 +1,72 @@
+{
+  "synthetic": true,
+  "artifact_version_code": 292,
+  "artifact_sha256": "5e9125bb5e618e8eb989bfff8096f09cbad5e4fd3e5b08768fd624f36efc0482",
+  "provenance": "Synthetic inputs executed against isolated, unmodified decompiled PowerBoard on host JVM; no hardware or Android DEX execution. No proprietary code is included.",
+  "vectors": [
+    {
+      "operation": 0,
+      "speed": 0,
+      "temperature_level": 0,
+      "android_direction": 1,
+      "tare": false,
+      "hex": "55 0F A1 00 00 00 00 00 00 00 00 00 00 05 AA"
+    },
+    {
+      "operation": 1,
+      "speed": 3,
+      "temperature_level": 0,
+      "android_direction": 0,
+      "tare": false,
+      "hex": "55 0F A1 01 00 03 00 00 00 00 00 01 00 0A AA"
+    },
+    {
+      "operation": 198,
+      "speed": 10,
+      "temperature_level": 0,
+      "android_direction": 1,
+      "tare": false,
+      "hex": "55 0F A1 C6 00 0A 00 00 00 00 00 00 00 D5 AA"
+    },
+    {
+      "operation": 3,
+      "speed": 3,
+      "temperature_level": 17,
+      "android_direction": 0,
+      "tare": false,
+      "hex": "55 0F A1 03 00 03 11 00 00 00 00 01 00 1D AA"
+    },
+    {
+      "operation": 4,
+      "speed": 1,
+      "temperature_level": 19,
+      "android_direction": 0,
+      "tare": false,
+      "hex": "55 0F A1 04 00 01 13 00 00 00 00 01 00 1E AA"
+    },
+    {
+      "operation": 5,
+      "speed": 4,
+      "temperature_level": 0,
+      "android_direction": 0,
+      "tare": false,
+      "hex": "55 0F A1 05 00 04 00 00 00 00 00 01 00 0F AA"
+    },
+    {
+      "operation": 15,
+      "speed": 0,
+      "temperature_level": 0,
+      "android_direction": 1,
+      "tare": false,
+      "hex": "55 0F A1 0F 00 00 00 00 00 00 00 00 00 14 AA"
+    },
+    {
+      "operation": 0,
+      "speed": 0,
+      "temperature_level": 0,
+      "android_direction": 1,
+      "tare": true,
+      "hex": "55 0F A1 00 A9 00 00 00 00 00 00 00 00 AE AA"
+    }
+  ]
+}

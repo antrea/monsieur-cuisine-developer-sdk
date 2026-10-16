@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "toolkit_version": "0.2.0",
+  "profile": "mc30-1.2.14.15",
+  "python_requires": ">=3.11",
+  "ci_python": [
+    "3.11",
+    "3.12",
+    "3.13"
+  ],
+  "local_verified": {
+    "os": "Windows",
+    "python": "3.12.14",
+    "tk": "8.6"
+  },
+  "ci_os": [
+    "windows-latest",
+    "ubuntu-latest",
+    "macos-latest"
+  ],
+  "ci_executed": false,
+  "hardware_verified": false,
+  "newer_apks_verified": false,
+  "rpm_mapping": "UNKNOWN",
+  "detection": "Compatible layout only; cannot identify installed app version from frames.",
+  "android_connection": {
+    "integrated": true,
+    "default_enabled": false,
+    "default_host": "127.0.0.1",
+    "default_port": 8766,
+    "local_verified": {
+      "sdk_api": 35,
+      "emulator_api": 30,
+      "emulator_abi": "x86_64",
+      "emulator_version": "37.2.12.0",
+      "java": "21",
+      "gradle": "8.11.1",
+      "kotlin": "2.1.20",
+      "agp": "8.9.2",
+      "android_e2e_passed": true
+    },
+    "hardware_transport": false
+  }
+}

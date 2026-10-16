@@ -1,0 +1,27 @@
+{
+  "format_version": 1,
+  "name": "thermal",
+  "seed": 7,
+  "duration": 60,
+  "events": [
+    {
+      "at": 0,
+      "action": "manual",
+      "values": {
+        "temperature": 60,
+        "seconds": 30
+      }
+    }
+  ],
+  "expect": [
+    {
+      "field": "temperature",
+      "op": "gt",
+      "value": 22
+    },
+    {
+      "field": "function",
+      "value": 0
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "profile": "mc30-1.2.14.15",
+  "evidence": "CONFIRMED_IN_APK",
+  "hardware_verified": false,
+  "historical_apk": {
+    "package": "com.tecpal.device.mc30",
+    "version_name": "1.2.14.15",
+    "version_code": 10214015,
+    "sha256": "6ad1e58869eb4287a6f8b0fa0cb931941fe527e8e4b661f2f86fc005548518ef"
+  },
+  "uart": {
+    "path": "/dev/ttyMT1",
+    "baud": 9600,
+    "electrical_levels": "UNKNOWN",
+    "stop_bits": "UNKNOWN"
+  },
+  "envelope": {
+    "header": "AA",
+    "length": "u16be, total size minus 1",
+    "bitmap": "4F42",
+    "checksum": "sum(frame[1:-1]) & 255",
+    "sequence": "8-bit increment/wrap skipping 0x66; correlation UNKNOWN"
+  },
+  "active_registry": "multo.structs.OperationStruct",
+  "tx_size": 39,
+  "legacy_tx_size": 35,
+  "rx_size": 48,
+  "tx_fields": [
+    {
+      "name": "header",
+      "offset": 0,
+      "size": 1,
+      "encoding": "AA",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "length",
+      "offset": 1,
+      "size": 2,
+      "encoding": "u16be; frame size minus 1",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "bitmap_size",
+      "offset": 3,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "bitmap",
+      "offset": 4,
+      "size": 2,
+      "encoding": "4F42",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "subtype",
+      "offset": 6,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "sequence",
+      "offset": 7,
+      "size": 1,
+      "encoding": "u8; not guaranteed ACK",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "opcode",
+      "offset": 8,
+      "size": 2,
+      "encoding": "u16be",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "temperature",
+      "offset": 10,
+      "size": 6,
+      "encoding": "level:u8,const:u16be,unit:u8,reserved:2",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "motor",
+      "offset": 16,
+      "size": 3,
+      "encoding": "level:u8,direction:u8,turbo:u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "function",
+      "offset": 19,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "scale",
+      "offset": 20,
+      "size": 2,
+      "encoding": "body:u8,mode:u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "timers",
+      "offset": 22,
+      "size": 9,
+      "encoding": "current,countdown,appointment; HMS each",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "light",
+      "offset": 31,
+      "size": 2,
+      "encoding": "type:u8,brightness:u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "button",
+      "offset": 33,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "remarks",
+      "offset": 34,
+      "size": 4,
+      "encoding": "opaque",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "checksum",
+      "offset": 38,
+      "size": 1,
+      "encoding": "sum bytes 1..37 modulo 256",
+      "evidence": "CONFIRMED_IN_APK"
+    }
+  ],
+  "rx_fields": [
+    {
+      "name": "header",
+      "offset": 0,
+      "size": 1,
+      "encoding": "AA",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "length",
+      "offset": 1,
+      "size": 2,
+      "encoding": "u16be; frame size minus 1",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "bitmap_size",
+      "offset": 3,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "bitmap",
+      "offset": 4,
+      "size": 2,
+      "encoding": "4F42",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "subtype",
+      "offset": 6,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "sequence",
+      "offset": 7,
+      "size": 1,
+      "encoding": "u8; not guaranteed ACK",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "opcode",
+      "offset": 8,
+      "size": 2,
+      "encoding": "u16be",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "firmware",
+      "offset": 10,
+      "size": 2,
+      "encoding": "u16be",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "state",
+      "offset": 12,
+      "size": 3,
+      "encoding": "bits + 2 reserved",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "error",
+      "offset": 15,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "return_code",
+      "offset": 16,
+      "size": 1,
+      "encoding": "u8; semantics UNKNOWN",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "temperature",
+      "offset": 17,
+      "size": 8,
+      "encoding": "level:s8,returned:s16be,actual:s16be,unit:s8,reserved:2",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "motor",
+      "offset": 25,
+      "size": 3,
+      "encoding": "level:s8,direction:s8,turbo:s8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "function",
+      "offset": 28,
+      "size": 1,
+      "encoding": "u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "scale",
+      "offset": 29,
+      "size": 7,
+      "encoding": "unit/decimals:u8,weight:s32be,state:u8,calibration:u8",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "timers",
+      "offset": 36,
+      "size": 9,
+      "encoding": "current,countdown,appointment; unsigned HMS each",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "light",
+      "offset": 45,
+      "size": 1,
+      "encoding": "raw byte; Java signed getter",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "button",
+      "offset": 46,
+      "size": 1,
+      "encoding": "raw",
+      "evidence": "CONFIRMED_IN_APK"
+    },
+    {
+      "name": "checksum",
+      "offset": 47,
+      "size": 1,
+      "encoding": "sum bytes 1..46 modulo 256",
+      "evidence": "CONFIRMED_IN_APK"
+    }
+  ],
+  "temperature_levels": [
+    0,
+    37,
+    40,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100,
+    105,
+    110,
+    115,
+    120,
+    125,
+    130
+  ],
+  "errors": {
+    "0": "NORMAL",
+    "1": "SERIAL_PORT_ERROR",
+    "3": "MOTOR_FAILURE",
+    "4": "VOLTAGE_OVERLOAD",
+    "5": "MOTOR_ERROR",
+    "6": "DRY_BURN_ALARM",
+    "7": "OVER_TEMPERATURE_PROTECTION",
+    "8": "TIMEOUT_PROTECTION",
+    "9": "OTHER_ERROR"
+  },
+  "functions": {
+    "0": "stop",
+    "1": "manual_or_ramp_or_rice",
+    "3": "steam_or_kettle",
+    "4": "roast",
+    "5": "knead",
+    "6": "short_cleaning",
+    "7": "long_cleaning",
+    "8": "egg",
+    "9": "sous_vide",
+    "10": "slow_cook",
+    "11": "fermentation",
+    "12": "puree",
+    "13": "smoothie",
+    "15": "sleep",
+    "198": "turbo"
+  },
+  "ota": {
+    "tx_sizes": {
+      "FE01": 27,
+      "FE02": 269,
+      "FE03": 11,
+      "FE04": 11,
+      "FE06": 11
+    },
+    "rx_sizes": {
+      "FE01": 12,
+      "FE02": 13,
+      "FE03": 28,
+      "FE04": 12,
+      "FE05": 14,
+      "FE06": 14
+    },
+    "metadata_size": 16,
+    "segment_size": 256,
+    "packet_sequence": "u16be",
+    "firmware_crc": "UNKNOWN"
+  }
+}

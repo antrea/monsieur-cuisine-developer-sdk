@@ -1,0 +1,32 @@
+{
+  "format_version": 1,
+  "name": "lid-fault",
+  "seed": 7,
+  "duration": 8,
+  "events": [
+    {
+      "at": 0,
+      "action": "manual",
+      "values": {
+        "speed": 4
+      }
+    },
+    {
+      "at": 3,
+      "action": "sensors",
+      "values": {
+        "lid_open": true
+      }
+    }
+  ],
+  "expect": [
+    {
+      "field": "actual_level",
+      "value": 0
+    },
+    {
+      "field": "lid_open",
+      "value": true
+    }
+  ]
+}

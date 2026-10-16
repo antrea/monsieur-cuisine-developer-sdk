@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a reproducible SDK, desktop or protocol-tool problem.
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach OEM binaries, firmware, credentials or private device logs. Use synthetic inputs where possible.
+  - type: dropdown
+    id: model
+    attributes:
+      label: Device profile
+      options: [MCC, MCS, Both, Not applicable]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: SDK version/commit, OS, Python/Tk or Android/JDK, and API/GUI/CLI component.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and expected behavior
+      description: Minimal steps or synthetic bytes, expected result, and actual result/error.
+    validations:
+      required: true
