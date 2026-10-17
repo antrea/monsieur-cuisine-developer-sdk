@@ -27,6 +27,7 @@ DigitalTwin(
     record: bool = True,
     max_actions: int = 100000,
     max_pending_bytes: int = 65536,
+    on_recording_full: str = "stop",
 )
 ```
 
@@ -38,6 +39,7 @@ DigitalTwin(
 | `record` | Boolean; enables complete bounded action recording |
 | `max_actions` | Integer 2–100000; includes capacity reserved for terminal disarm |
 | `max_pending_bytes` | Integer 269–1048576; maximum scheduled response bytes |
+| `on_recording_full` | `"stop"` (default): a full recording requests a synthetic STOP and ends the session. `"continue"`: the recording is marked `truncated` and the simulation keeps running unrecorded (used by the desktop) |
 
 Common speed is an integer UI level **0–10**. Direction is `"cw"` or `"ccw"`; temperature is an exact integer Celsius target from the profile table. Duration is integer seconds, with model-specific support below. Times accept finite integer/float seconds; `advance()` and fault delays are limited to 3600 seconds per call. Boolean values do not stand in for integer command fields.
 
@@ -48,7 +50,7 @@ Common speed is an integer UI level **0–10**. Direction is `"cw"` or `"ccw"`; 
 | `DigitalTwin(model, seed=292, parameters=None, record=True, ...)` | Creates one inert, explicit-profile session; no GUI, socket or device is opened |
 | `start_motor(speed=2, direction='ccw', temperature=0, duration=0)` | Encodes a profile command and feeds it; returns ready RX byte frames |
 | `stop_motor()` | Sends the profile STOP; retains finite model inertia and any configured link-fault effect |
-| `set_temperature(celsius)` | Reissues current requested speed/direction with an exact supported Celsius target |
+| `set_temperature(celsius)` | Reissues the current command with an exact supported Celsius target: MCC keeps its operation (e.g. KNEAD), speed and direction; MCS keeps function, raw level, direction, turbo lock and the remaining countdown. Idle models heat at speed 0 |
 | `tare()` | Uses the profile's documented scale operation |
 | `set_sensors(**values)` | Validates a complete normalized update, then injects it; returns state |
 | `set_faults(delay_seconds=0, drop_next=0, corrupt_next=0, disconnected=False)` | Replaces common response/link fault settings |
@@ -102,11 +104,11 @@ For raw research APIs, import `monsieur_cuisine_sdk.profiles.mcc.protocol` or `.
 |---|---|
 | `ValueError` | Invalid model, unsupported command value, nonfinite time, malformed input/recording or exceeded work bound; correct the input or start a fresh session |
 | `OwnershipError` | A different command owner holds the session; disconnect/release it instead of issuing competing commands |
-| `RecordingLimitError` | Recording capacity reached; targets are disarmed with a terminal trace, so save it and call `new_session()` |
+| `RecordingLimitError` | Recording capacity reached under the default `on_recording_full="stop"`; targets are disarmed with a terminal trace, so save it and call `new_session()` |
 | `RuntimeError` | Access from a thread other than the creating owner; dispatch work to the owner loop |
 | `OSError` | Explicit local save/load failed; choose a valid path and permissions |
 
-`OwnershipError` and `RecordingLimitError` are exported `ValueError` subclasses. Invalid complete frames can instead be rejected with bounded stream/timeline diagnostics and no command effect; absence of RX alone is not a transport acknowledgment.
+`OwnershipError` and `RecordingLimitError` are exported `ValueError` subclasses. Invalid complete frames can instead be rejected with bounded stream/timeline diagnostics and no command effect; absence of RX alone is not a transport acknowledgment. `command_count` counts frames the selected model accepted; `rejected_commands` counts complete frames it refused (each also logged as a `rejected_command` timeline event); `stream.issues` lists bytes discarded by framing. After a single stray or missing byte the selected-profile framer resynchronizes at the next valid frame.
 
 `subscribe_rx(callback)` and `before_switch(callback)` return an unsubscribe callable. The former receives `(bytes, generation)`; the latter lets an adapter close resources before a fresh profile/session is installed. A manual adapter can use `claim(owner)` and `release(owner)` with the same non-`None` identity token. Release alone does not request STOP; adapter cleanup must disarm explicitly. Ordinary applications should use the provided connection adapter rather than manage leases themselves.
 

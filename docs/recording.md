@@ -32,7 +32,7 @@ This is a deterministic regression format, not a signed or authenticated recordi
 
 ## Capacity and lifecycle
 
-The common recorder caps actions at 100000 and uses an approximate 32 MB recording budget, reserving space for a terminal disarm. On capacity, it removes targets, clears transport queues and records a terminal stop before rejecting further normal operations. Save the ended recording and start a new session. Bounded visual histories are separate from the complete action history. File replay is limited to 100 MB and 24 hours of total virtual advances; a single advance is at most 3600 seconds.
+The common recorder caps actions at 100000 and uses an approximate 32 MB recording budget, reserving space for a terminal disarm. With the default `on_recording_full="stop"`, on capacity it removes targets, clears transport queues and records a terminal stop before rejecting further normal operations. Save the ended recording and start a new session. With `on_recording_full="continue"` (the desktop's policy) the recording is marked `"truncated": true`, the recorded prefix still replays exactly, and the simulation continues unrecorded; the desktop records every 50 ms poll, which filled an MCC trace in about three minutes before this policy. Bounded visual histories are separate from the complete action history. File replay is limited to 100 MB and 24 hours of total virtual advances; a single advance is at most 3600 seconds.
 
 `mc-sdk record` saves and verifies an ended capacity trace, reports the reason and returns status 1 when the requested duration could not be completed. It does not discard the completed portion. The GUI/API `new_session()` retains the previous trace as `last_recording`; save it before replacing it again.
 
