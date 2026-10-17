@@ -90,9 +90,13 @@ class MCCProfile:
         frame = decode_frame(raw)
         if not isinstance(frame, TxFrame):
             raise ValueError("MCC accepts TX command frames only")
+        if frame.warnings or frame.calibration or frame.direction is None:
+            # The native model refuses these without actuation; report the
+            # refusal instead of counting the frame as an accepted command.
+            reason = "; ".join(frame.warnings) or "calibration command is not simulated"
+            raise ValueError(f"MCC command rejected without actuation: {reason}")
         result = self.native.feed(frame.raw)
-        if not frame.warnings and not frame.calibration:
-            self._operation = Operation(frame.operation)
+        self._operation = Operation(frame.operation)
         self._trim_log()
         return result
 
