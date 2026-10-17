@@ -89,5 +89,40 @@ class SetTemperaturePreservesTheRunningCommand(unittest.TestCase):
             self.assertEqual(twin.get_state().target_temperature, 60)
 
 
+class InteractiveRecordingPolicy(unittest.TestCase):
+    def test_default_policy_still_stops_at_capacity(self):
+        twin = DigitalTwin('mcc', max_actions=4)
+        twin.start_motor(2)
+        with self.assertRaises(RecordingLimitError):
+            for _ in range(10):
+                twin.advance(.05)
+        self.assertTrue(twin.recording_full)
+        self.assertEqual(twin.get_state().requested_speed, 0)
+
+    def test_continue_policy_truncates_recording_and_keeps_simulating(self):
+        for model in ('mcc', 'mcs'):
+            with self.subTest(model=model):
+                twin = DigitalTwin(model, max_actions=6, on_recording_full='continue')
+                twin.start_motor(2, 'cw')
+                for _ in range(40):
+                    twin.advance(.05)
+                    twin.sample()
+                state = twin.get_state()
+                self.assertFalse(twin.recording_full)
+                self.assertTrue(twin.recording['truncated'])
+                self.assertEqual(state.requested_speed, 2)
+                self.assertGreater(state.actual_speed, 0)
+                self.assertLessEqual(len(twin.recording['actions']), 6)
+                replay(twin.recording)  # the recorded prefix still replays exactly
+                twin.stop_motor()
+                twin.new_session()
+                self.assertEqual(twin.on_recording_full, 'continue')
+                self.assertNotIn('truncated', twin.recording)
+
+    def test_policy_is_validated(self):
+        with self.assertRaises(ValueError):
+            DigitalTwin('mcc', on_recording_full='ignore')
+
+
 if __name__ == '__main__':
     unittest.main()

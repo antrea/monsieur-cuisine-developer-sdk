@@ -83,7 +83,8 @@ class DigitalTwin:
     """
     def __init__(self, model: DeviceModel | str, *, seed: int = 292,
                  parameters: dict | None = None, record: bool = True,
-                 max_actions: int = 100000, max_pending_bytes: int = 65536):
+                 max_actions: int = 100000, max_pending_bytes: int = 65536,
+                 on_recording_full: str = "stop"):
         self.model = DeviceModel(model)
         if type(seed) is not int:
             raise ValueError("seed must be integer")
@@ -91,7 +92,13 @@ class DigitalTwin:
             raise ValueError("record bool and max_actions 2..100000 required")
         if type(max_pending_bytes) is not int or not 269 <= max_pending_bytes <= 1048576:
             raise ValueError("max_pending_bytes must be 269..1048576")
+        if on_recording_full not in ("stop", "continue"):
+            raise ValueError("on_recording_full must be 'stop' or 'continue'")
         self.seed, self.max_actions, self.max_pending_bytes = seed, max_actions, max_pending_bytes
+        # "stop": a full recording requests a synthetic STOP and ends the session
+        # (scripted/CLI default). "continue": the recording is marked truncated
+        # and the simulation keeps running unrecorded (interactive desktop).
+        self.on_recording_full = on_recording_full
         self._thread = threading.get_ident()
         self.profile = _profile(self.model, seed, parameters)
         self.generation = 0
@@ -201,6 +208,12 @@ class DigitalTwin:
             raise RecordingLimitError("recording ended at its capacity; create a new session to start again")
         if self.record_enabled and (len(self.recording["actions"]) >= self.max_actions - 1
                                     or self._recorded_bytes >= 32_000_000 - 524288):
+            if self.on_recording_full == "continue":
+                self.record_enabled = False
+                self.recording["truncated"] = True
+                self.recording["ended"] = "capacity: recording truncated; simulation continued unrecorded"
+                self.timeline.append({"event": "recording_truncated", "generation": self.generation})
+                return
             self._disarm_impl()
             self._record("recording_limit_stop", {}, [])
             self.recording["ended"] = "capacity: synthetic STOP requested before rejected operation"
@@ -411,7 +424,9 @@ class DigitalTwin:
         old_recording, generation = self.recording, self.generation + 1
         observers, hooks = self._observers, self._switch_observers
         seed, actions, pending = self.seed, self.max_actions, self.max_pending_bytes
-        self.__init__(selected, seed=seed, parameters=parameters, max_actions=actions, max_pending_bytes=pending)
+        policy = self.on_recording_full
+        self.__init__(selected, seed=seed, parameters=parameters, max_actions=actions, max_pending_bytes=pending,
+                      on_recording_full=policy)
         self.generation = generation
         self.recording["initial_generation"] = generation
         self._observers, self._switch_observers = observers, hooks
