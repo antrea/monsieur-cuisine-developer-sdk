@@ -87,6 +87,11 @@ def source_files(root):
             rel = path.relative_to(root).as_posix()
             if path.is_symlink():
                 _issue(issues, rel, 'links are not source inputs')
+            elif name == '.git':
+                # A root .git file is a linked-worktree pointer (Git metadata);
+                # elsewhere it marks a nested checkout or submodule.
+                if base == root:excluded.append(rel)
+                else:_issue(issues, rel, 'nested Git checkout is not part of this project')
             elif name in EXCLUDED_FILES or path.suffix in {'.pyc', '.pyo'}:
                 excluded.append(rel)
             elif path.suffix.lower() in SECRET_SUFFIXES or name == '.env' or name.startswith('.env.') or name.lower() in {'credentials', 'id_rsa', 'id_ed25519'}:

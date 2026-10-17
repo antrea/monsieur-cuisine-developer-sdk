@@ -21,11 +21,40 @@ import zipfile
 from audit_release import audit
 
 
+def git_selection_issues(root, selected):
+    """Selected files that are untracked or uncommitted when root is a Git top level.
+
+    The audit walks the filesystem; without this check a private untracked file
+    in an allowlisted directory (for example docs/notes.md) would be archived.
+    Archives that are not their own Git top level are left to the audit alone.
+    """
+    try:
+        top = subprocess.run(['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
+                             capture_output=True, text=True, timeout=30)
+    except OSError:
+        return []
+    if top.returncode or Path(top.stdout.strip()).resolve() != Path(root).resolve():
+        return []
+    def git(*arguments):
+        done = subprocess.run(['git', '-C', str(root), *arguments], capture_output=True, timeout=60, check=True)
+        return [entry for entry in done.stdout.decode('utf-8').split('\0') if entry]
+    tracked = set(git('ls-files', '-z'))
+    changed = {entry[3:] for entry in git('status', '--porcelain=v1', '-z', '--untracked-files=all')
+               if len(entry) > 3 and entry[:2] != '??'}
+    issues = []
+    for path in sorted(selected):
+        if path not in tracked:issues.append({'path': path, 'reason': 'untracked file would enter the release'})
+        elif path in changed:issues.append({'path': path, 'reason': 'uncommitted change would enter the release'})
+    return issues
+
+
 def build_source(root, output):
     root, output = Path(root).resolve(), Path(output).resolve()
     if output == root or output.is_relative_to(root):raise ValueError('release output must be outside the public checkout')
     checked = audit(root)
     if not checked['passed']:raise ValueError('source audit failed: ' + json.dumps(checked['issues']))
+    selection = git_selection_issues(root, {row['path'] for row in checked['manifest']})
+    if selection:raise ValueError('release selection is not a clean commit: ' + json.dumps(selection[:20]))
     version = tomllib.loads((root/'pyproject.toml').read_text('utf-8'))['project']['version']
     if not isinstance(version,str) or not re.fullmatch(r'[0-9A-Za-z][0-9A-Za-z.+-]*',version):raise ValueError('invalid release version')
     name = f'monsieur-cuisine-developer-sdk-{version}'
