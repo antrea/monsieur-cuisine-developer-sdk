@@ -8,6 +8,8 @@
 - New `on_recording_full="continue"` policy; the desktop uses it, so long interactive sessions no longer stop the motor after about three minutes (MCC) or fifteen minutes (MCS).
 - Desktop: status line always visible and window fitted to the screen; Protocol Monitor/Timeline keep scroll and selection and follow the newest frame; sensor injection sends only edited fields; refused/discarded input is reported.
 - Release builder refuses untracked or uncommitted files when packaging from a Git checkout; linked-worktree checkouts pass the source audit.
+- `python -m mcc_tools.cli` / `mcs_tools.cli` run the unified CLI instead of exiting silently; `replay()` raises `ValueError` for every malformed recording.
+- Documentation: Windows PowerShell quoting for `--params`, setuptools prerequisite for the release builder, Android fragment/idle timeouts, per-profile lid/NTC/error behavior, current publication state.
 
 ## 0.1.0 — initial unified product
 
@@ -19,4 +21,4 @@
 - Preserved research/specifications/attributions and separate synthetic fixture corpora.
 - Corrected proven baseline parser-boundary, delayed-response, recording-budget, work-control, telemetry-range and Android lifecycle issues, with focused regressions.
 
-This version is separate from the earlier MCC and MCS toolkit version histories. See [migration](docs/migration.md), [evidence](docs/evidence.md) and [validation](docs/tests.md) for scope. No remote publication is implied by this changelog.
+This version is separate from the earlier MCC and MCS toolkit version histories. See [migration](docs/migration.md), [evidence](docs/evidence.md) and [validation](docs/tests.md) for scope. Version 0.1.0 was published as a GitHub release on 2026-10-16.

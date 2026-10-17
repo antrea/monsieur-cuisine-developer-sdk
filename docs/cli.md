@@ -15,7 +15,7 @@ mc-sdk --model mcc inspect --hex "55 0F A1 00 00 00 00 00 00 00 00 00 00 05 AA"
 
 `build start` uses common units and validates profile capabilities. Common kinds are `start`, `stop`, `tare`, `query`. MCC has no verified query opcode and rejects it explicitly. MCC also rejects a nonzero duration or a 40 °C target.
 
-Native builders accept `--params` as a JSON object. MCC kind `tx` uses `operation`, `speed`, `temperature_level`, `direction`, `tare`. MCS kinds `manual`, `operation`, `ota` use the native encoder keyword names. Examples below use POSIX/PowerShell single-quoted JSON; adjust quoting for Command Prompt.
+Native builders accept `--params` as a JSON object. MCC kind `tx` uses `operation`, `speed`, `temperature_level`, `direction`, `tare`. MCS kinds `manual`, `operation`, `ota` use the native encoder keyword names. Examples below use POSIX single-quoted JSON. Windows PowerShell 5.1 strips the inner double quotes when calling native programs: escape them (`--params '{\"speed\":2}'`) or use PowerShell 7.3+; in Command Prompt write `--params "{\"speed\":2}"`.
 
 ```sh
 mc-sdk --model mcc build tx --params '{"operation":"turbo","speed":10}'

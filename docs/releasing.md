@@ -27,7 +27,7 @@ Freeze source after those updates. Any later source or documentation change inva
 
 ## Build outside the checkout
 
-The release builder refuses an output directory inside the public checkout. Choose a fresh external directory, for example a sibling `sdk-release-0.1.0` folder, and run:
+The release builder refuses an output directory inside the public checkout and, in a Git checkout, any untracked or uncommitted selected file. It builds the wheel without build isolation, so install the build backend first (`python -m pip install "setuptools>=77"`, as CI does). Choose a fresh external directory, for example a sibling `sdk-release-0.1.0` folder, and run:
 
 ```sh
 python tools/build_release.py --output ../sdk-release-0.1.0 --wheel --verify-wheel --verify-gui

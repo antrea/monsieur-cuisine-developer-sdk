@@ -41,7 +41,7 @@ finally:
     connection.close()
 ```
 
-Drive both model and bridge from the creating thread. `poll()` performs bounded nonblocking work; it does not create a second simulation. Network acceptance grants one remote command lease. Another client is rejected. Desktop STOP disconnects and disarms the lease. Disconnect, overflow, fragment timeout and model switch discard stale fragments/responses and remove targets as an explicit simulator lifecycle policy; measured motion may coast.
+Drive both model and bridge from the creating thread. `poll()` performs bounded nonblocking work; it does not create a second simulation. Network acceptance grants one remote command lease. Another client is rejected. Desktop STOP disconnects and disarms the lease. Disconnect, overflow, fragment timeout (an incomplete frame older than `fragment_timeout`, default 2 s), idle timeout (no traffic for `idle_timeout`, default 30 s; `last_disconnect: "idle timeout"`) and model switch discard stale fragments/responses and remove targets as an explicit simulator lifecycle policy; measured motion may coast. A client that only listens must still send at least one frame every 30 s.
 
 The bytes are raw MCC TX15/RX27 or MCS OB frames. No HTTP, handshake wrapper, clock opcode or invented ACK is added. MCC has no request sequence; MCS's independent counter skips `0x66` but is not proven request/response correlation.
 

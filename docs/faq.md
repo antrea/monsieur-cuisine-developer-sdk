@@ -18,7 +18,7 @@ No. The SDK, desktop and demo use synthetic state and need no appliance, origina
 
 ## 5. Can I use the SDK completely offline?
 
-Yes, after obtaining Python/Tk and any build dependencies you need. The installed library, desktop and built demo run locally without an account or Internet connection. An offline wheel installation is covered in [setup](setup.md).
+Yes, after obtaining Python/Tk and any build dependencies you need. The installed library, desktop and built demo run locally without an account or Internet connection. For an offline machine, build or download the wheel elsewhere and install it with `python -m pip install --no-index <wheel>`; [setup](setup.md) covers the online install.
 
 ## 6. Does the Digital Twin run on Windows?
 

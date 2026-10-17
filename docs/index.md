@@ -19,7 +19,7 @@ The current product is Monsieur Cuisine Developer SDK 0.1.0. Start with the Engl
 | Understand model and physical limits | [Safety and limitations](safety.md) |
 | Resolve common questions and symptoms | [FAQ](faq.md), [troubleshooting](troubleshooting.md), [glossary](glossary.md) |
 | Distinguish shipped work from planned verification/research | [Roadmap](roadmap.md) |
-| Prepare artifacts and a future authorized GitHub release | [Releasing](releasing.md), [release notes](../RELEASE_NOTES.md), [release audit](../RELEASE_AUDIT.md) |
+| Prepare artifacts and a GitHub release | [Releasing](releasing.md), [release notes](../RELEASE_NOTES.md), [release audit](../RELEASE_AUDIT.md) |
 
 The top-level [README](../README.md) is the current launch guide. The source distribution includes independent specs and synthetic fixtures for both devices.
 
