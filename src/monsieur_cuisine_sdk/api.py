@@ -116,6 +116,7 @@ class DigitalTwin:
         self.recording_full = False
         self._recorded_bytes = 0
         self.command_count = 0
+        self.rejected_commands = 0
         self.record_enabled = record
         self.timeline = deque(maxlen=1000)
         self.frames = deque(maxlen=400)
@@ -276,6 +277,7 @@ class DigitalTwin:
                     replies.extend(self.profile.feed_frame(frame))
                     self.command_count += 1
                 except ValueError as exc:
+                    self.rejected_commands += 1
                     self.timeline.append({"event": "rejected_command", "reason": str(exc)})
         self.frames.append({"direction": "TX", "hex": raw.hex(" ").upper(),
                             "time": self.now_ns / 1e9, "model": self.model.value})
@@ -408,6 +410,7 @@ class DigitalTwin:
         self._faults = dict(delay_seconds=0.0, drop_next=0, corrupt_next=0, disconnected=False)
         self._response_serial = 0
         self.command_count = 0
+        self.rejected_commands = 0
         self.history.clear(); self._point()
         self._record("switch_model", {"model": selected.value, "parameters": deepcopy(candidate.parameters)}, [])
         return self.get_state()
