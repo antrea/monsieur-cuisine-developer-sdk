@@ -124,5 +124,29 @@ class InteractiveRecordingPolicy(unittest.TestCase):
             DigitalTwin('mcc', on_recording_full='ignore')
 
 
+class EntryPointsAndReplayErrors(unittest.TestCase):
+    def test_legacy_cli_modules_run_instead_of_exiting_silently(self):
+        import json, os, subprocess, sys
+        from pathlib import Path
+        environment = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / 'src'))
+        for module, model in (('mcc_tools.cli', 'MCC'), ('mcs_tools.cli', 'MCS')):
+            with self.subTest(module=module):
+                done = subprocess.run([sys.executable, '-m', module, 'capabilities'], env=environment,
+                                      capture_output=True, text=True, timeout=60)
+                self.assertEqual(done.returncode, 0, done.stderr)
+                self.assertEqual(json.loads(done.stdout)['model'], model)
+
+    def test_malformed_recordings_raise_value_error(self):
+        twin = DigitalTwin('mcc')
+        twin.start_motor(2)
+        twin.sample()
+        good = twin.recording
+        missing_seed = {key: value for key, value in good.items() if key != 'seed'}
+        bad_arguments = {**good, 'actions': [dict(good['actions'][0], operation='sample', input={'unexpected': 1})]}
+        for recording in (missing_seed, bad_arguments, {**good, 'max_actions': None}):
+            with self.assertRaises(ValueError):
+                replay(recording)
+
+
 if __name__ == '__main__':
     unittest.main()

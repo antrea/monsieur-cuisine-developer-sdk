@@ -442,7 +442,18 @@ class DigitalTwin:
 
 
 def replay(recording: dict | str | Path, *, cancelled=None) -> DigitalTwin:
-    """Validate and replay local data; no socket/file callbacks are evaluated."""
+    """Validate and replay local data; no socket/file callbacks are evaluated.
+
+    Malformed recordings raise ValueError (missing keys or wrong argument
+    shapes included), as documented, never a bare KeyError/TypeError.
+    """
+    try:
+        return _replay(recording, cancelled=cancelled)
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"invalid recording: {type(exc).__name__}: {exc}") from exc
+
+
+def _replay(recording, *, cancelled=None) -> DigitalTwin:
     if isinstance(recording, (str, Path)):
         path = Path(recording)
         if path.stat().st_size > 100_000_000:
