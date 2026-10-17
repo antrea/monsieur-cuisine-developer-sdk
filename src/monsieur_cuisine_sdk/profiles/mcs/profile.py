@@ -26,6 +26,7 @@ class MCSProfile:
         self.native = DigitalTwin(seed=seed, parameters=configured)
         self._request_sequence = protocol.Sequence()
         self._parser = protocol.StreamParser()
+        self._last_operation = None
         self.capabilities = {
             'model': 'MCS', 'profile': protocol.PROFILE, 'protocol': protocol.PROFILE,
             'tx_bytes': 39, 'legacy_tx_bytes': 35, 'rx_bytes': 48,
@@ -66,6 +67,27 @@ class MCSProfile:
                                      temperature=temperature, seconds=duration)
         return self._sequenced(raw)
 
+    def encode_temperature(self, celsius):
+        """Reissue the last accepted 0802 command with a new target.
+
+        Function, raw speed level, direction, turbo lock and the remaining
+        countdown are preserved; without a running program the target is
+        applied as a manual operation at speed zero (previous behavior).
+        """
+        if type(celsius) is not int or celsius not in protocol.TEMPERATURES:
+            raise ValueError('temperature absent from APK manual levels')
+        level = protocol.TEMPERATURES.index(celsius)
+        state = self.native.state
+        last = self._last_operation
+        if last is None or state.function in (0, 15) or last.function in (0, 15):
+            raw = protocol.encode_operation(function=1, temperature_level=level, reverse=state.reverse)
+        else:
+            seconds = math.ceil(state.remaining - 1e-9) if state.timer_active else 0
+            raw = protocol.encode_operation(speed_level=last.speed_level, reverse=bool(last.direction_raw),
+                                            temperature_level=level, function=last.function, seconds=seconds,
+                                            turbo_lock=last.turbo_lock, button=last.button, legacy=last.legacy)
+        return self._sequenced(raw)
+
     def encode_stop(self):
         return self._sequenced(protocol.encode_operation(function=0))
 
@@ -81,6 +103,8 @@ class MCSProfile:
         if frame.bitmap != b'OB' or frame.subtype != 0:
             raise protocol.ProtocolError('MCS requires OB / subtype 0')
         response = self.native.transact(frame.raw)
+        if frame.opcode == 0x0802:
+            self._last_operation = protocol.decode_command(frame.raw)
         return [] if response is None else [response]
 
     def advance_ns(self, delta_ns):

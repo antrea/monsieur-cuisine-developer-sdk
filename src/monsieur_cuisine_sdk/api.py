@@ -287,8 +287,13 @@ class DigitalTwin:
             return []
 
     def set_temperature(self, celsius: int, *, owner=None):
-        state = self.get_state()
-        return self.start_motor(int(state.requested_speed), state.requested_direction, celsius, owner=owner)
+        """Reissue the current command with a new exact Celsius target.
+
+        The running operation/program, speed, direction and (MCS) remaining
+        countdown are preserved by the selected profile's own encoder.
+        """
+        self._check_owner(owner)
+        return self.feed(self.profile.encode_temperature(celsius), owner=owner)
 
     def tare(self, *, owner=None):
         self._check_owner(owner)

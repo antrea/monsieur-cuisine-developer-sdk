@@ -72,6 +72,20 @@ class MCCProfile:
         return encode_tx(Operation.STANDARD, speed=speed, direction=_DIRECTIONS[direction],
                          temperature_level=TEMPERATURE_LEVELS.index(temperature))
 
+    def encode_temperature(self, celsius: int) -> bytes:
+        """Reissue the current operation, speed and direction with a new target.
+
+        A halted controller (STOP/SLEEP) heats through STANDARD at speed zero,
+        matching the previous common behavior; a running program keeps its
+        operation instead of being replaced by STANDARD.
+        """
+        if type(celsius) is not int or celsius not in TEMPERATURE_LEVELS:
+            raise ValueError("MCC temperature must be an exact documented Celsius level")
+        operation = self._operation if self._operation not in (Operation.STOP, Operation.SLEEP) else Operation.STANDARD
+        return encode_tx(operation, speed=self.native.controller.requested_speed_level,
+                         temperature_level=TEMPERATURE_LEVELS.index(celsius),
+                         direction=Direction(self.native.snapshot()["requested_direction"]))
+
     def encode_stop(self) -> bytes:
         direction = Direction(self.native.snapshot()["requested_direction"])
         return encode_tx(Operation.STOP, direction=direction)

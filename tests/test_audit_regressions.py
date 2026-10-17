@@ -40,5 +40,54 @@ class RefusedCommandsAreNotCountedAsAccepted(unittest.TestCase):
         self.assertEqual(twin.command_count, 2)
 
 
+class SetTemperaturePreservesTheRunningCommand(unittest.TestCase):
+    def test_mcs_countdown_and_raw_level_are_preserved(self):
+        twin = DigitalTwin('mcs', record=False)
+        twin.start_motor(2, 'ccw', 60, 120)
+        twin.advance(10)
+        twin.set_temperature(80)
+        state = twin.get_state()
+        self.assertEqual(state.target_temperature, 80)
+        self.assertEqual(state.requested_speed, 2)
+        self.assertEqual(state.requested_direction, 'ccw')
+        self.assertEqual(state.raw['remaining'], 110)
+        self.assertTrue(state.raw['timer_active'])
+        twin.advance(111)
+        self.assertEqual(twin.get_state().requested_speed, 0)
+
+    def test_mcs_odd_raw_level_and_function_survive(self):
+        twin = DigitalTwin('mcs', record=False)
+        twin.feed(mcs.encode_operation(speed_level=5, function=5, temperature_level=0))  # knead, raw 5
+        twin.set_temperature(45)
+        state = twin.get_state()
+        self.assertEqual((state.target_speed, state.raw['function'], state.target_temperature), (5, 5, 45))
+
+    def test_mcc_program_operation_is_preserved(self):
+        twin = DigitalTwin('mcc', record=False)
+        twin.feed(encode_tx(Operation.KNEAD, speed=3, direction=Direction.CLOCKWISE))
+        twin.set_temperature(60)
+        controller = twin.get_state().raw['controller']
+        self.assertEqual((controller['extended_state'], controller['requested_speed_level']), (5, 3))
+        self.assertEqual(twin.get_state().target_temperature, 60)
+
+    def test_idle_set_temperature_heats_at_speed_zero_for_both(self):
+        for model in ('mcc', 'mcs'):
+            with self.subTest(model=model):
+                twin = DigitalTwin(model, record=False)
+                twin.set_temperature(60)
+                state = twin.get_state()
+                self.assertEqual((state.requested_speed, state.target_temperature), (0, 60))
+                self.assertTrue(state.heater_on or model == 'mcs')
+
+    def test_invalid_temperature_rejected_before_mutation(self):
+        for model in ('mcc', 'mcs'):
+            twin = DigitalTwin(model, record=False)
+            twin.start_motor(2, 'cw', 60)
+            for value in (38, 60.0, True, None):
+                with self.subTest(model=model, value=value), self.assertRaises(ValueError):
+                    twin.set_temperature(value)
+            self.assertEqual(twin.get_state().target_temperature, 60)
+
+
 if __name__ == '__main__':
     unittest.main()
