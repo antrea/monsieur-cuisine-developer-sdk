@@ -2,7 +2,7 @@
 
 ## Unreleased — independent audit corrections
 
-- Framing: one stray or missing byte no longer blacks out later commands. An MCS-looking header whose length bytes contain 0x55/0xAA is treated as noise, and MCC candidates are rejected as soon as the type byte disagrees, so STOP keeps working after line noise. Foreign-envelope quarantine is unchanged.
+- Framing: one stray or missing byte no longer blacks out later commands for good. An 0xAA immediately followed by a header byte (MCC terminator before the next `55 0F`, or a stray 0xAA before a real MCS header) is treated as noise, so STOP keeps working after line noise. Complete envelopes up to `max_frame` are still validated and discarded as one unit; only oversized declarations whose high length byte is 0x55/0xAA (≥ 21761 bytes, never documented) are no longer quarantined blindly. Other oversized declarations can still cost up to 64 KiB of input (design limit, see the audit roadmap).
 - MCC frames refused by the model (STOP with speed, unknown operation, out-of-range level, calibration) are reported as `rejected_command` and no longer counted as accepted; new `rejected_commands` counter.
 - `set_temperature()` reissues the running command (MCC operation; MCS function, raw level, turbo lock and remaining countdown) instead of a STANDARD/manual start without timer.
 - New `on_recording_full="continue"` policy; the desktop uses it, so long interactive sessions no longer stop the motor after about three minutes (MCC) or fifteen minutes (MCS).

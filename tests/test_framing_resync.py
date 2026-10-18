@@ -80,6 +80,37 @@ class FramingResynchronization(unittest.TestCase):
                     got = recovered(model, clean[:position] + bytes([value]) + clean[position:])
                     self.assertEqual(got[-150:], frames[-150:])
 
+    def test_nested_commands_stay_isolated_for_lengths_containing_header_bytes(self):
+        # Red-team regression: envelopes up to max_frame whose length field holds
+        # 0x55/0xAA (86, 171, 342, 597, 4011 bytes) must still be one unit, valid or
+        # damaged, in both the foreign (MCC) and own (MCS) case.
+        for selected in MODELS:
+            nested = DigitalTwin(selected, record=False).profile.encode_start(3, 'cw', 60)
+            for size in (86, 171, 342, 597, 4011):
+                payload = b'\x12\x34' + nested
+                outer = bytearray(mcs.pack(payload + b'\0' * (size - 9 - len(payload))))
+                for damaged in (False, True):
+                    raw = bytearray(outer)
+                    if damaged:raw[-1] ^= 1
+                    with self.subTest(selected=selected, size=size, damaged=damaged):
+                        twin = DigitalTwin(selected, record=False)
+                        twin.feed(bytes(raw))
+                        self.assertEqual(twin.get_state().requested_speed, 0)
+                        self.assertEqual(twin.command_count, 0)
+
+    def test_damaged_type_byte_or_inserted_aa_cost_one_frame(self):
+        # Red-team regression: early type rejection used to expose a fake 0xAA
+        # header inside the damaged frame (TURBO A1 -> AA lost 3,380 frames).
+        profile = DigitalTwin('mcc', record=False).profile
+        from monsieur_cuisine_sdk.profiles.mcc.protocol.codec import Direction, Operation, encode_tx
+        turbo = bytearray(encode_tx(Operation.TURBO, speed=10, direction=Direction.CLOCKWISE)); turbo[2] = 0xAA
+        stop = profile.encode_stop()
+        inserted = bytearray(stop); inserted.insert(2, 0xAA)
+        for damaged in (bytes(turbo), bytes(inserted)):
+            with self.subTest(damaged=damaged.hex()):
+                got = recovered('mcc', damaged + stop * 50)
+                self.assertGreaterEqual(len(got), 49)
+
     def test_foreign_envelope_isolation_is_preserved(self):
         # The documented quarantine still fences real foreign envelopes.
         twin = DigitalTwin('mcc', record=False)
