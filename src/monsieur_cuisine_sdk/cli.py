@@ -386,7 +386,7 @@ def main(argv=None) -> int:
             result = asdict(result)
         print(json.dumps(result, indent=2, allow_nan=False))
         return 1 if isinstance(result, dict) and any(result.get(key) is False for key in ("valid", "PASS", "passed")) else 0
-    except (ValueError, TypeError, KeyError, OSError, OverflowError) as exc:
+    except (ValueError, TypeError, KeyError, OSError, OverflowError, RecursionError) as exc:
         print(json.dumps({"model": args.model, "error": type(exc).__name__, "message": str(exc)}), file=sys.stderr)
         return 2
 

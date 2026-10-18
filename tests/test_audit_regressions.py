@@ -136,6 +136,34 @@ class RedTeamTwinRegressions(unittest.TestCase):
             replay(path)
 
 
+class MethodologyRegressions(unittest.TestCase):
+    def test_stress_oracle_still_fails_under_python_optimize(self):
+        # RT-M: bare asserts vanished under -O and a broken twin reported PASS.
+        import os, subprocess, sys
+        from pathlib import Path
+        code = ("import dataclasses, json\n"
+                "from monsieur_cuisine_sdk import scenarios\n"
+                "real = scenarios.DigitalTwin.get_state\n"
+                "scenarios.DigitalTwin.get_state = lambda self: dataclasses.replace(real(self), actual_speed=-1)\n"
+                "print(json.dumps(scenarios.run_stress('mcc', count=3)['PASS']))\n")
+        environment = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / 'src'))
+        done = subprocess.run([sys.executable, '-O', '-c', code], env=environment, capture_output=True,
+                              text=True, timeout=120)
+        self.assertEqual(done.stdout.strip(), 'false', done.stderr)
+
+    def test_cli_reports_deeply_nested_json_as_an_error(self):
+        import json, os, subprocess, sys, tempfile
+        from pathlib import Path
+        path = os.path.join(tempfile.mkdtemp(), 'deep.json')
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write('[' * 100000 + ']' * 100000)
+        environment = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / 'src'))
+        done = subprocess.run([sys.executable, '-m', 'monsieur_cuisine_sdk.cli', '--model', 'mcc', 'replay', path],
+                              env=environment, capture_output=True, text=True, timeout=120)
+        self.assertEqual(done.returncode, 2, done.stderr[-500:])
+        self.assertEqual(json.loads(done.stderr)['error'], 'RecursionError')
+
+
 class InteractiveRecordingPolicy(unittest.TestCase):
     def test_default_policy_still_stops_at_capacity(self):
         twin = DigitalTwin('mcc', max_actions=4)

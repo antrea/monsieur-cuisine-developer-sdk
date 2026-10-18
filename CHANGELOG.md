@@ -12,6 +12,7 @@
 - Android connection: a client reconnecting right after the previous client's last frames is accepted instead of being closed after the TCP handshake.
 - Kotlin SDK: `close()` racing `connect()` no longer leaves the transport connected; a burst of more than 128 MCC frames in one read no longer fails the session.
 - `python -m mcc_tools.cli` / `mcs_tools.cli` run the unified CLI instead of exiting silently; `replay()` raises `ValueError` for every malformed recording.
+- Tests: the Python RX decoders are frozen against the repository's MCC/MCS RX corpora (previously read only by Kotlin); the stress oracle no longer disappears under `python -O`; the CLI reports deeply nested JSON as an error. `docs/cli.md` no longer calls the MCS encoder corpus independent.
 - Documentation: Windows PowerShell quoting for `--params`, setuptools prerequisite for the release builder, Android fragment/idle timeouts, per-profile lid/NTC/error behavior, current publication state.
 
 ## 0.1.0 — initial unified product
