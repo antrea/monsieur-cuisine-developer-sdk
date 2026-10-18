@@ -2,6 +2,11 @@
 
 # MCUpdater, Android updates and powerboard firmware
 
+> **SDK 2.0 update:** the owner's full backup now supplies the actual updater
+> and platform images. See [platform startup and updater evidence](platform-startup.md)
+> for the newly identified files and static analysis. Artifact-absence statements
+> below describe the earlier investigation only.
+
 **No MCUpdater APK and no confirmed MCU firmware image were acquired in the research summarized here.** The client side present in MCLauncher build 292 was analyzed; its server-side update implementation was not. These are partial but useful results, not a completed reverse engineering of the missing updater.
 
 ## Components are different artifacts

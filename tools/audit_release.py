@@ -169,7 +169,10 @@ def audit(root, *, project_checks=True, runtime=False):
                             and any(node in ast.walk(method) for cls in tree.body
                                     if isinstance(cls, ast.ClassDef) and cls.name == 'SerialTransport'
                                     for method in cls.body if isinstance(method, ast.FunctionDef) and method.name == 'open'))
-                        if name and name not in sys.stdlib_module_names and name not in LOCAL_PACKAGES and not optional_serial:
+                        optional_analysis = (name in ('elftools', 'capstone') and rel == 'src/monsieur_cuisine_sdk/firmware/lab.py'
+                            and any(node in ast.walk(method) for method in tree.body
+                                    if isinstance(method, ast.FunctionDef) and method.name == 'inspect_elf'))
+                        if name and name not in sys.stdlib_module_names and name not in LOCAL_PACKAGES and not (optional_serial or optional_analysis):
                             _issue(issues, rel, 'non-standard-library runtime import', module=name)
         if path.suffix in ('.json', '.jsonl'):
             try:

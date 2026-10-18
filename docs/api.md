@@ -81,6 +81,15 @@ The optional `CookingHost` uses virtual time above the twin, not a new controlle
 `backup.verify.verify_session`, `backup.inventory.inventory_session` and
 `backup.external.MCCBackupAdapter` provide local read-only backup operations.
 Use `mc-backup` or the native Backup tab; see [backup API/CLI](backup.md).
+`backup.importer.import_backup` and `copy_session` import private ZIP/raw/session
+files into new verified directories; `backup.compare.compare_sessions` compares
+validated sessions. `backup.runtime.MCCBackupRuntime` provisions and verifies
+the supplied original tool and can explicitly run its file verifier with
+cancellation/timeout. `recovery.ImageRecovery` provides durable file-only
+restoration. [Recovery](recovery.md) documents plans and resume semantics.
+`firmware.lab.inspect_image` reads actual image structures; `inspect_elf` adds
+bounded real disassembly with the optional analysis extra. These are shared by
+`mc-firmware` and the native Firmware Lab; they never execute an image.
 The optional [USB toolkit](usb-toolkit.md) provides `AdbClient` and durable
 `AppTransaction` install/configuration/rollback operations on an explicit target.
 Legacy plan/rehearse remain synthetic. [Hardware transport](hardware-transport.md)

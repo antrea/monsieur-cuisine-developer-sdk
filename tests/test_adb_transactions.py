@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+import threading
 import unittest
 
 from monsieur_cuisine_sdk.adb import AdbClient, AdbError, ApkMetadata, CapabilityError, inspect_apk, package_name
@@ -136,8 +137,103 @@ class TransactionTests(unittest.TestCase):
         self.assertTrue(resumed.rollback()["rollback_verified"])
         self.assertEqual(self.client.removed, [self.metadata.package])
 
+    def test_companion_home_restores_an_original_implicit_default(self):
+        from monsieur_cuisine_sdk.adb import MANAGER_PACKAGE
+        self.client.homes = []
+        self.transaction.data["baseline"]["homes"] = []
+        self.transaction._save()
+        self.client.query_homes = lambda: {"effective_home": "android/com.android.internal.app.ResolverActivity",
+            "homes": [{"component": "org.example.existing/.Home", "label": "Original"},
+                      {"component": MANAGER_PACKAGE + "/.ManagerActivity", "label": "MC Developer Home"}]}
+        self.client.clear_own_home = lambda component: self.client.homes.clear()
+        metadata = ApkMetadata(MANAGER_PACKAGE, 23, "1", "1" * 64, 1, None)
+        self.transaction.install("synthetic.apk", metadata)
+        self.transaction.home(MANAGER_PACKAGE + "/.ManagerActivity")
+        self.assertTrue(self.transaction.rollback()["home_restored"])
+        self.assertEqual(self.client.homes, [])
+        self.assertNotIn(MANAGER_PACKAGE, self.client.installed)
+
+    def test_stale_writer_cannot_silently_replace_another_clients_journal(self):
+        stale = AppTransaction(self.client, self.transaction.directory).load()
+        self.transaction.setting("system", "screen_brightness", 101)
+        with self.assertRaises(AdbError):
+            stale.setting("system", "screen_brightness", 102)
+        self.assertEqual(self.client.read_setting("system", "screen_brightness"), "101")
+        latest = AppTransaction(self.client, self.transaction.directory).load()
+        self.assertEqual(len(latest.data["actions"]), 1)
+        self.assertTrue(latest.rollback()["rollback_verified"])
+
+    def test_pending_external_operation_blocks_additional_changes(self):
+        self.transaction._intent("setting", key="system/screen_brightness", before="100", after="101")
+        with self.assertRaises(AdbError):
+            self.transaction.setting("system", "screen_off_timeout", 1)
+        self.assertEqual(self.client.read_setting("system", "screen_off_timeout"), "60000")
+        self.assertTrue(self.transaction.rollback()["rollback_verified"])
+
+    def test_other_journal_cannot_rollback_while_target_command_is_running(self):
+        other = AppTransaction(self.client, self.folder / "second-journal")
+        other.begin()
+        entered, release = threading.Event(), threading.Event()
+        original = self.client.write_setting
+        errors = []
+        def blocked(namespace, key, value):
+            entered.set()
+            if not release.wait(5):
+                raise TimeoutError("test did not release virtual target")
+            original(namespace, key, value)
+        self.client.write_setting = blocked
+        def run():
+            try:
+                self.transaction.setting("system", "screen_brightness", 101)
+            except Exception as error:
+                errors.append(error)
+        worker = threading.Thread(target=run)
+        worker.start()
+        try:
+            self.assertTrue(entered.wait(2))
+            with self.assertRaises(AdbError):
+                other.rollback()
+        finally:
+            release.set(); worker.join(5)
+            self.client.write_setting = original
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(errors, [])
+        self.assertTrue(self.transaction.rollback()["rollback_verified"])
+
 
 class AdbBackendTests(unittest.TestCase):
+    def test_api23_home_settings_selects_the_radio_in_the_matching_row(self):
+        target = "org.example.home/org.example.home.Home"
+        client = AdbClient("adb", serial="emulator-5580", application_changes=True)
+        client.query_homes = lambda: {"homes": [{"component": target, "label": "Developer home"}]}
+        taps = []
+        xml = '''<hierarchy><node package="com.android.settings" clickable="true"><node text="Developer home" package="com.android.settings" bounds="[100,100][200,140]"/><node class="android.widget.RadioButton" package="com.android.settings" resource-id="com.android.settings:id/home_radio" enabled="true" bounds="[10,100][40,140]"/></node></hierarchy>'''
+        def shell(*args):
+            if args[0] == "dumpsys":
+                return "mCurrentFocus=Window{com.android.settings/.HomeSettings}"
+            if args[0] == "cat":
+                return xml
+            if args[:2] == ("input", "tap"):
+                taps.append(args[2:])
+            return ""
+        client._shell = shell
+        client.home_preferences = lambda: [target] if taps else []
+        self.assertTrue(client._select_home_settings(target)["persistent"])
+        self.assertEqual(taps, [(25, 120)])
+
+    def test_home_ui_never_taps_an_unrelated_foreground_app(self):
+        target = "org.example.home/org.example.home.Home"
+        client = AdbClient("adb", serial="emulator-5580", application_changes=True)
+        client.query_homes = lambda: {"homes": [{"component": target, "label": "Developer home"}]}
+        calls = []
+        def shell(*args):
+            calls.append(args)
+            return "mCurrentFocus=Window{de.silpion.mc2/.MainActivity}"
+        client._shell = shell
+        with self.assertRaises(CapabilityError):
+            client._select_home_settings(target)
+        self.assertFalse(any(args[0] == "input" for args in calls))
+
     def test_android_system_package_is_enumerated_but_protected(self):
         commands = []
         def runner(argv, **kwargs):

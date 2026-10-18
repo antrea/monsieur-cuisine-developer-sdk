@@ -28,8 +28,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-tk xvfb xauth
-      - name: Build tooling only
-        run: python -m pip install 'setuptools>=77'
+      - name: Build tooling and optional transport/analysis test dependencies
+        run: python -m pip install 'setuptools>=77' '.[serial,analysis]'
       - name: Source content, links, JSON, syntax and offline imports
         run: python tools/audit_release.py --runtime
       - name: Native Tk display preflight
@@ -76,7 +76,7 @@ jobs:
         run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
       - name: Kotlin JVM tests, SDK JAR and Android debug/instrumentation compilation
         working-directory: android
-        run: bash gradlew :sdk:test :sdk:jar :sdk:sourcesJar :sdk:hostJar :demo:assembleDebug :demo:assembleDebugAndroidTest --no-daemon
+        run: bash gradlew :sdk:test :sdk:jar :sdk:sourcesJar :sdk:hostJar :demo:assembleDebug :demo:assembleDebugAndroidTest :manager:assembleDebug :manager:lintDebug :oemprobe:assembleDebug :oemprobe:lintDebug --no-daemon
       - name: Both Kotlin JVM clients against actual binary Python sessions
         run: |
           python tools/verify_android.py --model mcc

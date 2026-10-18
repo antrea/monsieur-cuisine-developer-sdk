@@ -13,8 +13,10 @@
 > [ADB application transactions](docs/usb-toolkit.md), [serial driver](docs/hardware-transport.md),
 > [independent ART conformance](docs/oem-conformance.md) and [recovery limits](docs/recovery.md).
 > The completion extension is still in progress: an operational API 23 installer/
-> rollback and native Toolkit panels exist; general app updates, alternative
-> launcher, full Backup/Recovery workflows and final acceptance remain unfinished.
+> rollback, alternative launcher, Firmware Lab and new-file Recovery panels exist.
+> Backup import/stage/compare and original file verification are operational;
+> general app updates, supervised device acquisition and final acceptance remain
+> unfinished. These are development features, not a final SDK 2.0 release.
 
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 
@@ -47,7 +49,7 @@ The Python runtime uses the standard library. The desktop needs Tcl/Tk; no brows
 | Speed observation | Modeled RPM; target curves are illustrative | Raw motor levels; physical RPM conversion is unknown |
 | Main limits | No verified wire duration or query operation | OTA research is partial; no firmware flashing |
 
-The profiles retain independent field layouts, checksums, temperature tables and error meanings. Numeric speed levels are not physically equivalent across models. The SDK does not open either observed hardware serial interface.
+The profiles retain independent field layouts, checksums, temperature tables and error meanings. Numeric speed levels are not physically equivalent across models. Normal startup opens no hardware serial interface; the optional driver requires an explicitly selected port and separate active-mode authorization.
 
 ## Screenshots
 

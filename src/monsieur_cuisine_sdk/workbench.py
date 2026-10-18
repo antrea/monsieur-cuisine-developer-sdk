@@ -48,16 +48,22 @@ class JobPanel:
             return
         self.busy = True
         self.last_result = None
-        self.cancelled = threading.Event()
+        self.cancelled.clear()
         self.status.set("Working in background; close does not erase a pending transaction journal.")
         for button in self.buttons:
             button.configure(state="disabled")
         inbox = self.messages
         def worker():
             try:
-                inbox.put(("done", job()), timeout=1)
+                item = ("done", job())
             except Exception as error:
-                inbox.put(("error", {"completed": False, "error": str(error)}), timeout=1)
+                item = ("error", {"completed": False, "error": str(error)})
+            while True:
+                try:
+                    inbox.get_nowait()
+                except queue.Empty:
+                    break
+            inbox.put_nowait(item)
         threading.Thread(target=worker, daemon=True, name="sdk-workbench").start()
 
     def poll(self):
@@ -68,6 +74,10 @@ class JobPanel:
         except queue.Empty:
             pass
         else:
+            if kind == "progress":
+                self.status.set(value)
+                self.after = self.parent.after(50, self.poll)
+                return
             self.busy = False
             self.last_result = value
             self.status.set("Completed." if kind == "done" else "Operation failed; review result and any pending journal.")
@@ -78,6 +88,12 @@ class JobPanel:
             for button in self.buttons:
                 button.configure(state="normal")
         self.after = self.parent.after(50, self.poll)
+
+    def progress(self, text):
+        try:
+            self.messages.put_nowait(("progress", str(text)))
+        except queue.Full:
+            pass
 
     def close(self):
         self.closed = True
@@ -171,7 +187,7 @@ class ToolkitPanel:
         self.notebook = ttk.Notebook(parent)
         self.notebook.pack(fill="both", expand=True)
         self.panels = []
-        for label, panel_type in (("App & Launcher", AppManagerPanel), ("Conformance", ConformancePanel)):
+        for label, panel_type in (("App & Launcher", AppManagerPanel), ("Conformance", ConformancePanel), ("Firmware Lab", FirmwarePanel), ("Recovery", RecoveryPanel)):
             frame = ttk.Frame(self.notebook, padding=8)
             self.notebook.add(frame, text=label)
             self.panels.append(panel_type(frame))
@@ -179,3 +195,57 @@ class ToolkitPanel:
     def close(self):
         for panel in self.panels:
             panel.close()
+
+
+class RecoveryPanel(JobPanel):
+    def __init__(self, parent):
+        super().__init__(parent, "Recovery Manager: verified file images", "Creates/resumes a new image file, never a physical disk. Firmware plans keep hardware writes disabled. Check completion and full SHA-256 before using output.")
+        self.session = self.field(0, "Source backup session")
+        self.destination = self.field(1, "New private output directory")
+        self.chunk_mib = self.field(2, "Chunk size MiB", "4")
+        self.button("Prepare / verify", lambda: self.run(False))
+        self.button("Restore file / resume", lambda: self.run(True))
+        self.ttk.Button(self.actions, text="Cancel file work", command=self.cancelled.set).pack(side="left", padx=2)
+
+    def run(self, execute):
+        from .recovery import ImageRecovery
+        try:
+            source, destination = self.session.get(), self.destination.get()
+            chunk = int(self.chunk_mib.get()) * 1024**2
+            if not source or not destination:
+                raise ValueError("Select a source session and a new private output directory")
+        except ValueError as error:
+            self.status.set(str(error)); return
+        event = self.cancelled
+        progress = self.progress
+        def job():
+            recovery = ImageRecovery(source, destination, chunk_bytes=chunk)
+            if not execute or not recovery.directory.exists():
+                plan = recovery.prepare(progress=progress, cancelled=event.is_set)
+                if not execute:
+                    return plan
+            return recovery.execute(cancelled=event.is_set, progress=lambda done, total: progress(f"{done}/{total} bytes restored to new image"))
+        self.start_job(job)
+
+
+class FirmwarePanel(JobPanel):
+    def __init__(self, parent):
+        super().__init__(parent, "Firmware Lab: local read-only analysis", "Inspect image structures, actual APK manifests or optional native ELF disassembly. No image mounting, execution, device access or cloud upload.")
+        self.image = self.field(0, "Image / APK / ELF", choose=choose_file)
+        self.aapt = self.field(1, "aapt for APK metadata", "aapt", choose=choose_file)
+        self.hash_content = self.tk.BooleanVar(master=parent, value=False)
+        self.ttk.Checkbutton(self.fields, text="Hash entire image (can take time)", variable=self.hash_content).grid(row=2, column=0, columnspan=3, sticky="w")
+        for label, kind in (("Inspect image", "image"), ("Inspect APK", "apk"), ("Disassemble ELF", "elf")):
+            self.button(label, lambda operation=kind: self.run(operation))
+
+    def run(self, kind):
+        from .firmware.lab import inspect_image, inspect_elf
+        from .adb import inspect_apk, metadata_dict
+        selected, aapt, checksum = self.image.get(), self.aapt.get(), self.hash_content.get()
+        def job():
+            if kind == "apk":
+                return metadata_dict(inspect_apk(selected, aapt=aapt))
+            if kind == "elf":
+                return inspect_elf(selected, max_functions=16, max_instructions=128)
+            return inspect_image(selected, hash_content=checksum)
+        self.start_job(job)

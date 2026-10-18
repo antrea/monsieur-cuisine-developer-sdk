@@ -8,17 +8,46 @@ intent is persisted before the external command, including rollback intents.
 from __future__ import annotations
 
 from copy import deepcopy
+from contextlib import closing
+from functools import wraps
 import hashlib
 import json
 import os
 from pathlib import Path
 import tempfile
+import sqlite3
+import re
 
-from .adb import AdbClient, AdbError, ApkMetadata, CapabilityError, SETTING_KEYS, metadata_dict, package_name, component_name
+from .adb import AdbClient, AdbError, ApkMetadata, CapabilityError, SETTING_KEYS, MANAGER_PACKAGE, metadata_dict, package_name, component_name, normalized_component
 
 
 def _seal(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _exclusive_target(method):
+    @wraps(method)
+    def run(self, *args, **kwargs):
+        # One mutating transaction per target, across journal directories and
+        # processes. An OS-managed SQLite lock is automatically released after
+        # a host crash. It is transient coordination, not global configuration.
+        identity = self.client.target_digest
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", identity):
+            raise ValueError("invalid transaction target identity")
+        directory = Path(tempfile.gettempdir()) / "mc-sdk-operation-locks"
+        if directory.is_symlink():
+            raise ValueError("linked operation lock directory is not permitted")
+        directory.mkdir(mode=0o700, exist_ok=True)
+        path = directory / (identity + ".sqlite3")
+        if path.is_symlink():
+            raise ValueError("linked operation lock is not permitted")
+        try:
+            with closing(sqlite3.connect(path, timeout=0)) as database:
+                database.execute("BEGIN IMMEDIATE")
+                return method(self, *args, **kwargs)
+        except sqlite3.OperationalError as exc:
+            raise AdbError("target has another active transaction or coordination is unavailable") from exc
+    return run
 
 
 class AppTransaction:
@@ -42,13 +71,29 @@ class AppTransaction:
         raw = json.dumps(data, indent=2).encode("utf-8") + b"\n"
         if len(raw) > 4 * 1024**2:
             raise ValueError("transaction journal exceeds size limit")
-        descriptor, temporary = tempfile.mkstemp(prefix=".transaction-", dir=self.directory)
+        lock = self.directory / ".journal-lock.sqlite3"
+        if lock.is_symlink():
+            raise ValueError("linked journal lock is not permitted")
         try:
-            with os.fdopen(descriptor, "wb") as handle:
-                handle.write(raw); handle.flush(); os.fsync(handle.fileno())
-            os.replace(temporary, self.path)
-        finally:
-            Path(temporary).unlink(missing_ok=True)
+            # SQLite provides a portable OS-managed writer lock released on
+            # process death. The JSON remains the inspectable canonical journal.
+            with closing(sqlite3.connect(lock, timeout=0)) as database:
+                database.execute("BEGIN IMMEDIATE")
+                if self.path.exists():
+                    if self.path.stat().st_size > 4 * 1024**2:
+                        raise ValueError("journal exceeds size limit")
+                    current = json.loads(self.path.read_text("utf-8"))
+                    if current.get("integrity_sha256") != self.data.get("integrity_sha256"):
+                        raise AdbError("journal changed in another session; reload before any new operation")
+                descriptor, temporary = tempfile.mkstemp(prefix=".transaction-", dir=self.directory)
+                try:
+                    with os.fdopen(descriptor, "wb") as handle:
+                        handle.write(raw); handle.flush(); os.fsync(handle.fileno())
+                    os.replace(temporary, self.path)
+                finally:
+                    Path(temporary).unlink(missing_ok=True)
+        except sqlite3.OperationalError as exc:
+            raise AdbError("journal is busy or unavailable; no external operation started") from exc
         self.data = data
 
     def begin(self):
@@ -94,6 +139,8 @@ class AppTransaction:
     def _intent(self, kind, **values):
         if self.data is None or self.data["status"] != "open":
             raise ValueError("begin or load an open transaction first")
+        if any(action["phase"] in ("intent", "undo-intent") for action in self.data["actions"]):
+            raise AdbError("transaction has an unresolved operation; recover/roll back it before making new changes")
         action = {"kind": kind, "phase": "intent", **values}
         self.data["actions"].append(action)
         self._save()
@@ -103,6 +150,7 @@ class AppTransaction:
         self.data["actions"][-1]["phase"] = "applied"
         self._save()
 
+    @_exclusive_target
     def install(self, apk, metadata: ApkMetadata):
         if self.data is None:
             raise ValueError("begin a transaction first")
@@ -115,6 +163,7 @@ class AppTransaction:
         self._applied()
         return result
 
+    @_exclusive_target
     def setting(self, namespace, key, value):
         if (namespace, key) not in SETTING_KEYS:
             raise ValueError("unsupported configuration key")
@@ -123,14 +172,31 @@ class AppTransaction:
         self.client.write_setting(namespace, key, value)
         self._applied()
 
+    @_exclusive_target
     def home(self, component):
         before = self.client.home_preferences()
-        if len(before) != 1:
+        if len(before) > 1:
             raise CapabilityError("persistent HOME change requires an unambiguous prior HOME for rollback")
-        self._intent("home", before=before[0], after=component_name(component))
+        component = normalized_component(component)
+        effective = None
+        if not before:
+            if component.split("/")[0] != MANAGER_PACKAGE:
+                raise CapabilityError("without a prior HOME preference only the SDK companion can guarantee preference cleanup")
+            query = self.client.query_homes()
+            effective = query.get("effective_home")
+            if not effective or "ResolverActivity" in effective:
+                original_homes = [home["component"] for home in query.get("homes", [])
+                                  if home["component"].split("/")[0] != MANAGER_PACKAGE
+                                  and home["component"].split("/")[0] in self.data["baseline"]["packages"]]
+                if len(original_homes) != 1:
+                    raise CapabilityError("no unambiguous prior HOME to return to")
+                effective = original_homes[0]
+            component_name(effective)
+        self._intent("home", before=before[0] if before else None, before_effective=effective, after=component)
         self.client.select_home(component)
         self._applied()
 
+    @_exclusive_target
     def rollback(self):
         if self.data is None:
             raise ValueError("load a transaction first")
@@ -159,7 +225,14 @@ class AppTransaction:
                     self.client.write_setting(namespace, key, action["before"])
             else:
                 homes = self.client.home_preferences()
-                if homes != [action["before"]]:
+                if action["before"] is None:
+                    if homes == [action["after"]]:
+                        self.client.clear_own_home(action["after"])
+                    elif homes:
+                        raise AdbError("HOME changed outside this transaction; rollback stopped")
+                    if action.get("before_effective"):
+                        self.client.start_activity(action["before_effective"])
+                elif homes != [action["before"]]:
                     if homes != [action["after"]]:
                         raise AdbError("HOME changed outside this transaction; rollback stopped")
                     self.client.select_home(action["before"])

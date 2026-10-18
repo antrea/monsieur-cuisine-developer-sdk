@@ -42,17 +42,39 @@ idempotent. Removing an app added by the transaction also removes data it
 created during that transaction. Journals are private device metadata: keep
 them outside published source and distributions.
 
-`home COMPONENT --journal ... --allow-app-changes` changes persistent HOME only
-when Android pm provides set-home-activity and the old HOME is unambiguous.
-API 23 lacks that command; the toolkit reports the limit. `home-chooser` opens
-Android's supported selection UI without claiming automatic persistent success.
+`home COMPONENT --journal ... --allow-app-changes` changes persistent HOME using
+Android pm where set-home-activity exists. API 23 lacks that command. On the
+supported Android 6 stock HOME Settings screen the toolkit can select the exact
+matching row's radio button through UI Automator, first checking the Settings
+foreground app and then verifying Package Manager's persistent preference.
+An ambiguous/unsupported screen fails without tapping guessed coordinates.
+`home-chooser` just opens the supported selection UI and does not imply success.
+
+The separate `android/manager` user app (API 23) coexists with OEM software. It
+lists/starts apps, offers the system HOME settings, clears its own HOME preference
+and returns to the previous launcher. The shell query/clear-own-HOME receiver is
+protected by Android's DUMP permission. It cannot change arbitrary protected
+packages. Install the manager with a transaction before selecting its HOME;
+rollback restores the previous explicit or implicit HOME before removing it.
+Its SAF/PackageInstaller flow requires normal Android user consent; complete
+end-to-end verification of that import/consent path remains in progress.
 
 Two actual API 23 emulator cycles exercised installation, launch, removal,
 setting restoration and resumed rollback, including interruption after Package
 Manager installed the app but before journal success was saved. Both native
 demo profiles also passed Activity-to-Tk integration on API 23. These are
 emulator results, not physical MCC validation. No ADB bypass or USB autorun is
-implemented. The alternative launcher/complete App Manager remain in progress.
+implemented. Persistent HOME selection and rollback have also passed on the
+API 23 emulator. A second test executed Android commands as UID 2000 through an
+emulator-only privilege-reduction adapter. The emulator's daemon/SELinux context
+still differs from a physical non-root MCC: that test is not hardware validation
+or proof of stock physical shell policy. General existing-app updates/data
+restoration remain unfinished and rejected.
+
+The [original platform/updater analysis](devices/mcc/research/platform-startup.md)
+records disabled/debuggable defaults, privileged OEM update context and the
+USB Host declaration. It does not establish USB-stick autorun, a physical ADB
+activation procedure or permanence of an alternative HOME through OEM updates.
 
 Legacy plan/rehearse remain explicitly synthetic; they are not the evidence
 for operational ADB behavior. See [recovery](recovery.md),

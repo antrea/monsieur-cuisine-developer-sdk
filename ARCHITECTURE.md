@@ -17,9 +17,11 @@ Python library / CLI / native Tk desktop / optional localhost Android client
 
 Optional MCC CookingHost -> host latch/timers -> original MCC frames -> twin
 
-Backup tab / mc-backup -> read-only session -> GPT/image/ext4 readers
-                         |                   -> sanitized inventory/reports
-                         + external MCC Backup format adapter (no tool launch)
+Backup tab / mc-backup -> validated session -> GPT/image/ext4 readers
+                         |                  -> sanitized inventory/comparison
+                         + import/extract -> NEW private files/manifests
+                         + stage/recovery -> NEW image + durable chunk ledger
+                         + supplied pinned external tool -> explicit file verifier
 
 mc-usb / native Toolkit tab -> explicit-target AdbClient -> Android Package Manager
                            -> AppTransaction -> durable journal / compensation
@@ -35,8 +37,11 @@ Neither layer proves firmware interlocks. The independent MCS profile is not
 inferred from the MCC backup.
 
 Firmware readers operate on bounded file windows. No image is mounted or
-executed. The backup integration reads the external tool's output format and
-known archive hash; it imports no GPL implementation into the MIT SDK. Personal
+executed by the readers. The backup integration validates the external tool's
+archive and installed source hashes, importing no GPL implementation into the
+MIT SDK process. Explicit file verification runs the original supplied script
+in its own supervised subprocess. Optional ELF disassembly uses bounded analysis
+extras. Personal
 userdata is hashed for integrity and inspected only for fixed filesystem
 allocation metadata. System APKs are opaque files for inventory hashing, never
 parsed for manifests, signatures, classes or resources.
@@ -44,8 +49,11 @@ parsed for manifests, signatures, classes or resources.
 The Tk Backup panel runs file work in one bounded worker, sends progress/results
 through a bounded queue, and cancels on close. Workers never manipulate widgets.
 Reports exclude device identifiers, filesystem UUIDs, boot command lines and
-absolute workstation paths. Report export creates a new file outside the
-source session. Normal desktop startup performs no device discovery, ADB call,
+absolute workstation paths. Import/staging outputs contain actual private disk
+data and remain separate from public reports. Partial imports are never reported
+complete; staging uses the same image recovery engine as the native Recovery tab.
+Report export creates a new file outside both captured source sessions.
+Normal desktop startup performs no device discovery, ADB call,
 network bind or backup-file read.
 
 The USB component now has an explicit-target ADB executor for user-app and
@@ -53,7 +61,8 @@ supported-setting changes, plus durable write-ahead rollback. Legacy sandbox
 rehearsal is kept separate. Package Manager checks signatures; system/OEM
 replacement and general private-app-data restoration are not supported.
 The native Toolkit uses the same APIs, with one bounded worker per panel.
-The [USB guide](docs/usb-toolkit.md) describes remaining launcher limitations.
+The [USB guide](docs/usb-toolkit.md) describes the API 23 HOME companion and
+remaining physical-device limits.
 Serial monitoring is receive-only unless active mode is deliberately enabled;
 no firmware/partition writer is supplied. The independent
 [OEM probe](docs/oem-conformance.md) directly executes original DEX on an

@@ -5,4 +5,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Monsieur Cuisine Developer SDK"
 include(":sdk")
-if (providers.gradleProperty("includeAndroidDemo").orNull != "false") include(":demo", ":oemprobe")
+if (providers.gradleProperty("includeAndroidDemo").orNull != "false") include(":demo", ":oemprobe", ":manager")

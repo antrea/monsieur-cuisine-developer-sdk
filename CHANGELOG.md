@@ -12,8 +12,19 @@
   all 57,998 codec/conversion references match. Public verifier preserves private
   input isolation and records APK/DEX provenance. Calibration serialization is
   now compared as well as decoded.
-- Existing-app data/update workflows, alternative launcher, remaining Backup/
-  Recovery UI and final acceptance are still in progress; not a finished release.
+- Native API 23 App/Launcher Manager with protected shell query/clear-own-HOME
+  companion. Persistent HOME and rollback tested through stock Settings, including
+  restoring an implicit original HOME. No OEM package is changed.
+- Verified backup comparison and real private ZIP/session/raw imports, actual
+  GPT partition extraction, manifests, cancellation and explicit incomplete state.
+- Full-user-area staging and resumable new-file recovery use recorded SHA-256,
+  durable chunk journals and source/prefix checks; no physical writer.
+- Original supplied GPL tool source provisioning/hash validation and actual
+  independent file verifier; cancellable supervised subprocess, no bundled code.
+- Native Backup import/stage/compare/external-verifier controls, plus operational
+  Firmware Lab and Recovery panels; real Tk/file regression coverage.
+- Existing-app data/update workflows, supervised device acquisition, remaining
+  OEM analysis and final acceptance are still in progress; not a finished release.
 
 
 ## 2.0.0.dev0 — local development, not published

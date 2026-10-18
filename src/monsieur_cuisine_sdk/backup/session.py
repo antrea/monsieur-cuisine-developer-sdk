@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import stat
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
@@ -42,7 +43,10 @@ def safe_relative(text: str) -> PurePosixPath:
 
 def read_manifest(path: Path) -> dict[str, str]:
     """Parse a sha256sum-style manifest into {relative posix path: lowercase hex}."""
-    if path.stat().st_size > MAX_MANIFEST_BYTES:
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode):
+        raise ValueError("manifest must be a regular file")
+    if info.st_size > MAX_MANIFEST_BYTES:
         raise ValueError(f"{path.name}: manifest larger than {MAX_MANIFEST_BYTES} bytes")
     entries: dict[str, str] = {}
     for number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
@@ -78,6 +82,8 @@ class BackupSession:
                 item = Path(directory) / name
                 if item.is_symlink() or (hasattr(item, 'is_junction') and item.is_junction()):
                     raise ValueError("backup session contains a link or junction")
+                if not (stat.S_ISREG(item.lstat().st_mode) or stat.S_ISDIR(item.lstat().st_mode)):
+                    raise ValueError("backup session contains a nonregular file")
             # Session metadata is shallow; never recursively inspect image files.
             directories[:] = [d for d in directories if Path(directory) == root and d in (DIRECT, EXTRACTED)]
         problems = []
