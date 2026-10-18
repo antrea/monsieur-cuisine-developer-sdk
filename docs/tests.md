@@ -2,9 +2,9 @@
 
 ## SDK 2.0 local development verification (2026-10-18)
 
-The `2.0.0.dev0` local branch passed **183 Python tests on each of CPython
+The `2.0.0.dev0` local branch passed **184 Python tests on each of CPython
 3.11.17, 3.12.15, 3.13.16 and 3.14.8 on Windows 11**, including real Tk widgets,
-the Backup tab and loopback integration. **28 Kotlin/JVM tests** passed offline;
+the Backup tab and loopback integration. **29 Kotlin/JVM tests** passed offline;
 both packaged JVM clients also passed against the actual native desktop/model.
 No Android Activity/emulator or physical appliance was exercised in this phase.
 

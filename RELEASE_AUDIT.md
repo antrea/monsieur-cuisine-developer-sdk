@@ -3,7 +3,7 @@
 ## SDK 2.0 local development checkpoint — 2026-10-18
 
 This branch is `2.0.0.dev0`, not a published SDK 2.0 release. Current verification:
-183 Python tests passed on each of Python 3.11–3.14/Windows; 28 Kotlin/JVM tests
+184 Python tests passed on each of Python 3.11–3.14/Windows; 29 Kotlin/JVM tests
 passed; both JVM clients exercised the same native Tk/model instance. Backup
 integrity/reconstruction and privacy-minimized inventory were exercised on the
 owner's local files. The full 57,998-vector software comparison and independent

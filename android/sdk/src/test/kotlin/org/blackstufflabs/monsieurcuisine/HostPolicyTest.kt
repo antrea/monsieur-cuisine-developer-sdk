@@ -4,6 +4,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class HostPolicyTest {
+    @Test fun stopRetainsTheRequestedDirection() {
+        val transport=MockTransport(DeviceModel.MCC)
+        val client=MonsieurCuisineClient(DeviceModel.MCC,transport)
+        client.connect()
+        client.startMotor(2,MotorDirection.COUNTER_CLOCKWISE)
+        client.stopMotor()
+        assertEquals(0,transport.sentFrames.last()[3].toInt())
+        assertEquals(1,transport.sentFrames.last()[11].toInt())
+        client.close()
+    }
     @Test fun clockwiseDefaultMinimumAndHeatedReverseCaps() {
         val transport=MockTransport(DeviceModel.MCC)
         val client=MonsieurCuisineClient(DeviceModel.MCC,transport)
@@ -21,6 +31,8 @@ class HostPolicyTest {
     }
 
     @Test fun strictPolicyRefusesWithoutSending() {
+        // Preserve the original two-argument constructor for Java consumers.
+        assertNotNull(MonsieurCuisineClient::class.java.getConstructor(DeviceModel::class.java,Transport::class.java))
         val transport=MockTransport(DeviceModel.MCC)
         val client=MonsieurCuisineClient(DeviceModel.MCC,transport,HostPolicyMode.STRICT)
         client.connect()

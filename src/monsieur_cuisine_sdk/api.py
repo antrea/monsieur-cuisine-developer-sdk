@@ -338,6 +338,8 @@ class DigitalTwin:
         if self.profile.native.controller.requested_temperature_level >= 5:
             raise ValueError("MCC manual turbo requires the previous target below level 5")
         from .profiles.mcc.protocol.codec import Operation
+        if self.profile._operation not in (Operation.STOP, Operation.TURBO):
+            raise ValueError("MCC manual turbo requires an idle/stopped host session")
         return self.feed(self.profile.encode_start(10, "cw", 0, operation=Operation.TURBO), owner=owner)
 
     def tare(self, *, owner=None):

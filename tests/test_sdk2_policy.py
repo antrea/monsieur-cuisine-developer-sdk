@@ -35,6 +35,14 @@ class HostCommandPolicy(unittest.TestCase):
         idle = DigitalTwin('mcc'); idle.set_temperature(60)
         self.assertEqual(idle.get_state().requested_speed, 1)
 
+    def test_zero_temperature_from_idle_never_starts_motor_or_turbo_during_run(self):
+        twin = DigitalTwin('mcc')
+        twin.set_temperature(0)
+        self.assertEqual(twin.get_state().requested_speed, 0)
+        self.assertFalse(twin.get_state().motor_on)
+        twin.start_motor(2)
+        with self.assertRaises(ValueError): twin.start_turbo()
+
     def test_recipe_conversion_is_explicit_and_profile_specific(self):
         twin = DigitalTwin('mcc')
         twin.set_recipe_temperature(98)

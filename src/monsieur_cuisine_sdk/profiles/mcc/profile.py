@@ -100,6 +100,8 @@ class MCCProfile:
         """
         if type(celsius) is not int or celsius not in TEMPERATURE_LEVELS:
             raise ValueError("MCC temperature must be an exact documented Celsius level")
+        if celsius == 0 and self._operation in (Operation.STOP, Operation.SLEEP):
+            return self.encode_stop()
         operation = self._operation if self._operation not in (Operation.STOP, Operation.SLEEP) else Operation.STANDARD
         return self._policy_command(operation, self.native.controller.requested_speed_level,
                                     Direction(self.native.snapshot()["requested_direction"]),

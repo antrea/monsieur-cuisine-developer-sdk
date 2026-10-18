@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
 /** Worker-thread API. Writes do not wait for or fabricate acknowledgments. */
 enum class HostPolicyMode { OEM, STRICT }
 
-class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport,
+class MonsieurCuisineClient @JvmOverloads constructor(val model: DeviceModel, val transport: Transport,
                            val hostPolicy: HostPolicyMode = HostPolicyMode.OEM): AutoCloseable {
     val capabilities=WireProfiles.capabilities(model)
     private val lifecycle=Any();private val commands=Any();private val epoch=AtomicLong()
@@ -72,7 +72,7 @@ class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport,
     fun startMotor(speed: Int, direction: MotorDirection=MotorDirection.CLOCKWISE,
                    temperatureC: Int=0, durationSeconds: Int=0) =
         write { RequestedOperation(true,speed,direction,temperatureC,durationSeconds) }
-    fun stopMotor() = write { RequestedOperation() }
+    fun stopMotor() = write { RequestedOperation(direction=it.direction) }
     fun setDirection(direction: MotorDirection) = write { it.copy(direction=direction) }
     private fun receiveRaw(timeoutMillis: Int,generation:Long):ByteArray {
         require(timeoutMillis>0)

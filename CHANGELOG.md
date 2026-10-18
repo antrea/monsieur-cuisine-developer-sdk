@@ -18,6 +18,8 @@
 - Read-only allowlisted ADB diagnostics and explicitly offline application plans,
   launcher transaction/rollback rehearsal. No physical installer, writer or restoration.
 - Development versions distinguish these local artifacts from the published 0.1.0.
+- Final review: zero temperature from stopped MCC stays stopped; manual turbo
+  cannot replace an active host program. Kotlin STOP retains the previous direction.
 
 
 ## Unreleased — independent audit corrections
