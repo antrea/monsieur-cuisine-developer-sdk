@@ -148,5 +148,35 @@ class EntryPointsAndReplayErrors(unittest.TestCase):
                 replay(recording)
 
 
+class FastReconnect(unittest.TestCase):
+    def test_reconnect_right_after_last_frames_is_accepted(self):
+        # Red-team A6: the old peer's final frames were read first, its EOF only on
+        # the next poll, so the new client was rejected after a completed handshake.
+        import socket, time
+        from monsieur_cuisine_sdk.android_connection import AndroidConnection, ConnectionConfig
+        for model in ('mcc', 'mcs'):
+            with self.subTest(model=model):
+                twin = DigitalTwin(model, record=False)
+                connection = AndroidConnection(twin, ConnectionConfig(port=0)).start()
+                try:
+                    first = socket.create_connection(connection.address, timeout=1)
+                    connection.poll()
+                    self.assertEqual(twin.owner, 'remote')
+                    first.sendall(twin.profile.encode_stop())
+                    first.close()
+                    second = socket.create_connection(connection.address, timeout=1)
+                    time.sleep(.1)
+                    connection.poll()
+                    self.assertEqual(connection.rejected_clients, 0)
+                    self.assertEqual(connection.status()['status'], 'Connected')
+                    second.sendall(twin.profile.encode_start(2, 'cw', 0))
+                    time.sleep(.1)
+                    connection.poll()
+                    self.assertEqual(twin.get_state().requested_speed, 2)
+                    second.close()
+                finally:
+                    connection.close()
+
+
 if __name__ == '__main__':
     unittest.main()

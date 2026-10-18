@@ -110,6 +110,11 @@ class AndroidConnection:
                 candidate, _ = self.listener.accept()
             except BlockingIOError:
                 break
+            if self.client is not None:
+                # A previous peer may have sent its last frames and closed just
+                # before reconnecting; read again so its EOF releases the lease
+                # instead of rejecting the new client after a TCP handshake.
+                self._service()
             if self.client is not None or self.twin.owner != "local":
                 candidate.close(); self.rejected_clients += 1; continue
             candidate.setblocking(False)
