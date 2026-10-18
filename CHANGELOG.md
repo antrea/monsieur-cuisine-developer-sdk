@@ -8,6 +8,8 @@
 - New `on_recording_full="continue"` policy; the desktop uses it, so long interactive sessions no longer stop the motor after about three minutes (MCC) or fifteen minutes (MCS).
 - Desktop: status line always visible and window fitted to the screen; Protocol Monitor/Timeline keep scroll and selection and follow the newest frame; sensor injection sends only edited fields; refused/discarded input is reported.
 - Release builder refuses untracked or uncommitted files when packaging from a Git checkout; linked-worktree checkouts pass the source audit.
+- Android connection: a client reconnecting right after the previous client's last frames is accepted instead of being closed after the TCP handshake.
+- Kotlin SDK: `close()` racing `connect()` no longer leaves the transport connected; a burst of more than 128 MCC frames in one read no longer fails the session.
 - `python -m mcc_tools.cli` / `mcs_tools.cli` run the unified CLI instead of exiting silently; `replay()` raises `ValueError` for every malformed recording.
 - Documentation: Windows PowerShell quoting for `--params`, setuptools prerequisite for the release builder, Android fragment/idle timeouts, per-profile lid/NTC/error behavior, current publication state.
 
