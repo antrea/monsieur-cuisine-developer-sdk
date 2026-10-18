@@ -15,7 +15,8 @@
 > The completion extension is still in progress: an operational API 23 installer/
 > rollback, alternative launcher, Firmware Lab and new-file Recovery panels exist.
 > Backup import/stage/compare and original file verification are operational;
-> general app updates, supervised device acquisition and final acceptance remain
+> checked debug-app/data updates are implemented. Supervised device acquisition,
+> remaining OEM analysis and final acceptance remain
 > unfinished. These are development features, not a final SDK 2.0 release.
 
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.

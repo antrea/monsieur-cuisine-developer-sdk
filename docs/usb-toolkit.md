@@ -18,12 +18,14 @@ mc-usb rollback --adb ADB --serial SELECTED_DEVICE \
 `devices` lists identifiers for explicit selection; do not publish its output.
 APK metadata comes from the real manifest via Android SDK aapt, with a size
 bound and SHA-256 check. Android Package Manager validates signatures. No
-verification-disabling, downgrade or automatic permission-grant flags are used.
+verification-disabling or automatic permission-grant flags are used. The
+explicit debug-update rollback below uses Android's checked developer downgrade.
 
 `AdbClient` executes the actual subprocesses. `AppTransaction` saves a durable,
 checksummed write-ahead journal, snapshots packages/HOME/supported settings,
-and compensates changes in reverse order. New user apps are supported; general
-updates of existing apps and their private data are unfinished and rejected.
+and compensates changes in reverse order. New user apps and data-preserving
+updates of supported debuggable user apps are implemented. Production/non-debug
+and split-APK update recovery are outside this supported workflow and rejected.
 Standalone `remove PACKAGE --allow-data-removal --allow-app-changes` removes a
 selected user app and its data, without claiming a data-preserving rollback.
 System/manufacturer packages are rejected.
@@ -68,8 +70,59 @@ implemented. Persistent HOME selection and rollback have also passed on the
 API 23 emulator. A second test executed Android commands as UID 2000 through an
 emulator-only privilege-reduction adapter. The emulator's daemon/SELinux context
 still differs from a physical non-root MCC: that test is not hardware validation
-or proof of stock physical shell policy. General existing-app updates/data
-restoration remain unfinished and rejected.
+or proof of stock physical shell policy. Supported debug-app update/data cycles
+also passed on API 23, including interruptions after forward replacement and
+after returning to the original APK, Unicode/long/space names and a test-owned
+AndroidKeyStore key. Real Tk update/rollback controls passed the same workflow.
+
+## Existing debug-app update and file-data rollback
+
+```sh
+mc-usb update NEW_VERSION.apk --aapt AAPT --adb ADB --serial SELECTED_DEVICE --journal NEW_PRIVATE_TRANSACTION --allow-app-changes
+mc-usb rollback --adb ADB --serial SELECTED_DEVICE --journal PRIVATE_TRANSACTION --allow-app-changes
+```
+
+`AppTransaction.update(apk, metadata, aapt=...)` checks a previously installed
+monolithic user APK and requires both old/new manifests to be debuggable. It
+backs up the old APK, makes a verified private copy of the replacement, checks
+`run-as` access and the application's UID, then force-stops and snapshots its
+accessible sandbox. The intent precedes app-state changes; a complete snapshot
+is journaled before the checked `install -r` replacement. Android verifies the
+signer and installation compatibility. A source APK being rebuilt cannot change
+the private replacement after its hash was verified.
+
+Rollback validates the journal, old APK, data archive, package and UID; preserves
+current post-update data in a new private safety copy; restores the old debug APK
+using supported `install -r -d`; and restores/verifies original accessible files.
+It does **not** uninstall, clear data, obtain root, replace protected apps or
+extract keystore keys. Keeping the same installed UID avoids the key loss of an
+uninstall/reinstall fallback. The API 23 test verified a synthetic test key's MAC
+before/after; it did not export that key or inspect manufacturer credentials.
+
+Snapshots use bounded binary transfers, validated tar metadata and host-side
+hashes; no archive member is extracted onto the host. Android 6 toybox tar
+cannot safely handle all long/non-ASCII names. Such trees use NUL-delimited find,
+batched numeric stat, direct file transfer and host-generated GNU archives.
+Restore uses file-by-file writes for those trees, preserving original names.
+Simple trees retain the tested native-tar path. Unsafe links/special files,
+changing trees, excess size/count and unsupported access fail explicitly.
+
+`RunAsData.snapshot(package, new_directory)`, `load(directory)` and
+`restore(directory, workdir=...)` expose the file APIs. Whole-archive transfers
+are bounded to 512 MiB; inventories to 20,000 entries. APK-provided `lib` is
+excluded; accessible files, shared preferences, SQLite data, caches, no_backup,
+custom directories and root sandbox files are included. External storage,
+unavailable app data, device-wide permission state and keystore export are not
+part of the file snapshot. App processes must remain quiescent; external tools
+can still invalidate a transaction and are detected where observable.
+
+After interruption, use the same journal with `rollback`. A failure before the
+snapshot is ready cannot silently proceed with replacement. A failure after
+replacement or downgrade is recovered by inspecting installed hashes and
+reapplying the verified data restoration. Conflicting APK/UID/snapshot changes
+stop recovery. Partial and safety copies remain private for diagnostics. At most
+32 restoration safety copies are accepted per action; the bound stops further
+mutation instead of deleting previous copies.
 
 The [original platform/updater analysis](devices/mcc/research/platform-startup.md)
 records disabled/debuggable defaults, privileged OEM update context and the

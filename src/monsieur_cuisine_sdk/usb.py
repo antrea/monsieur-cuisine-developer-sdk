@@ -111,15 +111,15 @@ def main(argv=None):
     plan.add_argument("--package", required=True); plan.add_argument("--minimum-sdk", type=int, required=True)
     plan.add_argument("--output", type=Path)
     rehearsal = sub.add_parser("rehearse"); rehearsal.add_argument("plan", type=Path)
-    for operation in ("devices", "info", "apps", "install", "remove", "start", "home", "home-chooser", "config", "rollback"):
+    for operation in ("devices", "info", "apps", "install", "update", "remove", "start", "home", "home-chooser", "config", "rollback"):
         command = sub.add_parser(operation)
         command.add_argument("--adb", required=True)
         command.add_argument("--serial", required=operation != "devices", help="exact authorized ADB target; never selected automatically")
         command.add_argument("--server-port", type=int, default=5037)
         command.add_argument("--allow-app-changes", action="store_true")
-        if operation in ("install", "config", "home", "rollback"):
+        if operation in ("install", "update", "config", "home", "rollback"):
             command.add_argument("--journal", type=Path, required=True)
-        if operation == "install":
+        if operation in ("install", "update"):
             command.add_argument("apk", type=Path)
             command.add_argument("--aapt", required=True)
         elif operation == "remove":
@@ -150,7 +150,7 @@ def main(argv=None):
             from .transactions import AppTransaction
             client = AdbClient(args.adb, serial=args.serial or "enumeration-only", server_port=args.server_port,
                                application_changes=args.allow_app_changes)
-            if args.command in ("install", "config", "home", "rollback"):
+            if args.command in ("install", "update", "config", "home", "rollback"):
                 if not args.allow_app_changes:
                     raise PermissionError("explicit --allow-app-changes required")
                 transaction = AppTransaction(client, args.journal)
@@ -167,6 +167,8 @@ def main(argv=None):
                     result = {"user_packages": client.packages(kind="user"), "homes": client.home_preferences()}
                 elif args.command == "install":
                     result = transaction.install(args.apk, inspect_apk(args.apk, aapt=args.aapt))
+                elif args.command == "update":
+                    result = transaction.update(args.apk, inspect_apk(args.apk, aapt=args.aapt), aapt=args.aapt)
                 elif args.command == "remove":
                     if not args.allow_data_removal:
                         raise PermissionError("--allow-data-removal is required to remove an app and its data")

@@ -3,10 +3,10 @@ android {
     namespace = "org.blackstufflabs.monsieurcuisine.demo"
     compileSdk = 35
     defaultConfig {
-        applicationId = "org.blackstufflabs.monsieurcuisine.demo"
+        applicationId = providers.gradleProperty("demoApplicationId").getOrElse("org.blackstufflabs.monsieurcuisine.demo")
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
+        versionCode = providers.gradleProperty("demoVersionCode").getOrElse("1").toInt()
         versionName = "2.0.0-dev0"
         testInstrumentationRunner = "org.blackstufflabs.monsieurcuisine.demo.BridgeInstrumentation"
     }

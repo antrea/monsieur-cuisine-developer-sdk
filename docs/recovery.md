@@ -6,7 +6,7 @@ operations are described in [Backup Manager](backup.md) and [USB toolkit](usb-to
 | Level | Available implementation | Verification |
 |---|---|---|
 | Application transaction rollback | Durable ADB journal, verified removal of added user APKs, supported HOME/settings compensation | Actual API 23 emulator tests including interrupted install/rollback; no physical MCC changes |
-| Software/configuration restoration | Supported screen settings restored via ADB; general app data/update recovery unfinished | Actual API 23 settings restoration; MCC hardware unverified |
+| Software/configuration restoration | Supported screen settings and checked same-UID debug-app APK/data restoration; production/split-app updates excluded | Actual API 23 update/downgrade/data/keystore checks, including interrupted recovery; MCC hardware unverified |
 | Full firmware preparation and file restoration | Verified plan and resumable reconstruction into NEW regular image files; physical execution disabled | Whole-user-area file reconstruction, interruption/resume and recorded SHA-256 verified; hardware restoration unverified |
 
 ## Verified file restoration

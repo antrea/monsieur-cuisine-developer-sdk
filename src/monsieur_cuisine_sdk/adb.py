@@ -61,6 +61,7 @@ class ApkMetadata:
     sha256: str
     size: int
     launch_activity: str | None
+    debuggable: bool = False
 
 
 def inspect_apk(apk, *, aapt, runner=subprocess.run):
@@ -83,7 +84,8 @@ def inspect_apk(apk, *, aapt, runner=subprocess.run):
     launch = component_name(package[1] + "/" + activity[1]) if activity else None
     if sha256_file(path) != checksum:
         raise AdbError("APK changed during inspection")
-    return ApkMetadata(package[1], int(minimum[1]), package[2], checksum, path.stat().st_size, launch)
+    return ApkMetadata(package[1], int(minimum[1]), package[2], checksum, path.stat().st_size, launch,
+                       bool(re.search(r"^application-debuggable(?:\s|$)", result.stdout, re.M)))
 
 
 class AdbClient:
@@ -95,13 +97,14 @@ class AdbClient:
     remount, reboot, shell scripts and OEM package removal are not exposed.
     """
     def __init__(self, executable, *, serial: str, server_port: int = 5037,
-                 application_changes: bool = False, runner=subprocess.run):
+                 application_changes: bool = False, runner=subprocess.run, process_factory=subprocess.Popen):
         if not isinstance(serial, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", serial):
             raise ValueError("select one explicit ADB target")
         if type(server_port) is not int or not 1 <= server_port <= 65535:
             raise ValueError("invalid ADB server port")
         self.executable, self.serial, self.server_port = str(executable), serial, server_port
         self.application_changes, self.runner = application_changes, runner
+        self.process_factory = process_factory
         self.target_digest = hashlib.sha256(serial.encode("utf-8")).hexdigest()
 
     def _run(self, arguments, *, target=True, timeout=20):
@@ -173,8 +176,7 @@ class AdbClient:
         if package in PROTECTED or package.startswith("android.") or package in self.packages(kind="system"):
             raise PermissionError("protected/system package changes are not supported")
 
-    def installed_apk_hashes(self, package, *, workdir):
-        """Hash copies pulled from Package Manager's paths, never guess locations."""
+    def _apk_paths(self, package):
         package_name(package)
         paths = []
         for line in self._shell("pm", "path", package).splitlines():
@@ -186,6 +188,11 @@ class AdbClient:
             paths.append(remote)
         if len(paths) > 32:
             raise AdbError("too many split APKs")
+        return paths
+
+    def installed_apk_hashes(self, package, *, workdir):
+        """Hash copies pulled from Package Manager's paths, never guess locations."""
+        paths = self._apk_paths(package)
         hashes = []
         with tempfile.TemporaryDirectory(dir=workdir, prefix="verify-apk-") as temporary:
             for index, remote in enumerate(paths):
@@ -195,6 +202,21 @@ class AdbClient:
                     raise AdbError("installed APK exceeds verification bound")
                 hashes.append(sha256_file(local))
         return hashes
+
+    def save_installed_apk(self, package, destination):
+        """Copy one installed user APK; split updates require a separate policy."""
+        self.require_authorized()
+        self._user_package(package)
+        paths = self._apk_paths(package)
+        if len(paths) != 1:
+            raise CapabilityError("this data-preserving update workflow requires a monolithic installed APK")
+        destination = Path(destination)
+        if destination.exists() or destination.is_symlink():
+            raise ValueError("APK snapshot output must be new")
+        self._run(["pull", paths[0], str(destination)], timeout=120)
+        if not destination.is_file() or not 0 < destination.stat().st_size <= 512 * 1024**2:
+            raise AdbError("installed APK snapshot size is invalid")
+        return destination
 
     def install(self, apk, metadata: ApkMetadata):
         self._mutating()
@@ -222,6 +244,36 @@ class AdbClient:
         if output != "Success" or package in self.packages():
             raise AdbError("uninstall was not confirmed")
         return {"package": package, "removed": True}
+
+    def replace_apk(self, apk, metadata: ApkMetadata, *, debug_downgrade=False):
+        """Use Package Manager's checked replacement, optionally debug downgrade.
+
+        The -d developer flag is only exposed for a debuggable source APK and
+        an existing run-as-accessible app. Package Manager still enforces its
+        own signer/debuggable restrictions. No uninstall, clear, root or data
+        deletion occurs here; AppTransaction owns data backup/compensation.
+        """
+        self._mutating()
+        self._user_package(metadata.package)
+        if metadata.package not in self.packages():
+            raise CapabilityError("replacement requires an installed user app")
+        if metadata.minimum_sdk > self.diagnose()["sdk"]:
+            raise CapabilityError("replacement APK requires a newer Android API")
+        path = Path(apk).resolve()
+        if path.stat().st_size != metadata.size or sha256_file(path) != metadata.sha256:
+            raise AdbError("replacement APK no longer matches inspected metadata")
+        arguments = ["install", "-r"]
+        if debug_downgrade:
+            from .android_data import RunAsData
+            if not metadata.debuggable:
+                raise CapabilityError("debug rollback requires a debuggable APK")
+            RunAsData(self).identity(metadata.package)
+            arguments.append("-d")
+        output = self._run([*arguments, str(path)], timeout=120)
+        if not re.search(r"(?m)^Success$", output):
+            raise AdbError("Package Manager did not confirm APK replacement")
+        return {"package": metadata.package, "updated": True, "debug_downgrade": debug_downgrade,
+                "signature_verifier": "Android Package Manager"}
 
     def start_activity(self, component):
         self.require_authorized()

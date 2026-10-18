@@ -59,7 +59,9 @@ network bind or backup-file read.
 The USB component now has an explicit-target ADB executor for user-app and
 supported-setting changes, plus durable write-ahead rollback. Legacy sandbox
 rehearsal is kept separate. Package Manager checks signatures; system/OEM
-replacement and general private-app-data restoration are not supported.
+replacement and production/split-app update recovery are not supported.
+Checked debug-app updates use run-as data snapshots, UID-bound journals and
+Package Manager's developer rollback while preserving the installation UID.
 The native Toolkit uses the same APIs, with one bounded worker per panel.
 The [USB guide](docs/usb-toolkit.md) describes the API 23 HOME companion and
 remaining physical-device limits.

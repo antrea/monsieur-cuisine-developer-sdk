@@ -130,13 +130,22 @@ class AppManagerPanel(JobPanel):
         self.apk = self.field(4, "User APK", choose=choose_file)
         self.journal = self.field(5, "Private transaction directory")
         self.component = self.field(6, "Activity / HOME component")
+        self.remove_package = self.field(7, "User package to remove")
         self.allow_changes = self.tk.BooleanVar(master=parent, value=False)
+        self.allow_data_removal = self.tk.BooleanVar(master=parent, value=False)
         self.ttk.Checkbutton(self.fields, text="Enable application/configuration changes for this selected target",
-                             variable=self.allow_changes).grid(row=7, column=0, columnspan=3, sticky="w")
+                             variable=self.allow_changes).grid(row=8, column=0, columnspan=3, sticky="w")
+        self.ttk.Checkbutton(self.fields, text="Allow removal of the selected user app and its data (no data rollback)",
+                             variable=self.allow_data_removal).grid(row=9, column=0, columnspan=3, sticky="w")
         for title, operation in (("Discover", "devices"), ("Device / apps", "info"), ("Inspect APK", "inspect"),
                                  ("Install new app", "install"), ("Start activity", "start"),
-                                 ("HOME chooser", "chooser"), ("Set HOME", "home"), ("Rollback", "rollback")):
+                                 ("HOME chooser", "chooser"), ("Set HOME", "home"), ("Rollback", "rollback"),
+                                 ("Update debug app + backup", "update"), ("Remove user app", "remove")):
             self.button(title, lambda value=operation: self.run(value))
+        for button in self.buttons:
+            button.pack_forget()
+        for index, button in enumerate(self.buttons):
+            button.grid(row=index // 4, column=index % 4, sticky="ew", padx=2, pady=2)
 
     def run(self, operation):
         from .adb import AdbClient, inspect_apk, metadata_dict
@@ -144,9 +153,12 @@ class AppManagerPanel(JobPanel):
         try:
             selected = {"adb": self.adb.get(), "aapt": self.aapt.get(), "serial": self.serial.get(),
                         "port": int(self.port.get()), "apk": self.apk.get(), "journal": self.journal.get(),
-                        "component": self.component.get(), "allow": self.allow_changes.get()}
-            if operation in ("install", "home", "rollback") and not selected["allow"]:
+                        "component": self.component.get(), "allow": self.allow_changes.get(),
+                        "package": self.remove_package.get(), "remove_data": self.allow_data_removal.get()}
+            if operation in ("install", "update", "remove", "home", "rollback") and not selected["allow"]:
                 raise PermissionError("Enable application changes explicitly before this operation")
+            if operation == "remove" and not selected["remove_data"]:
+                raise PermissionError("Enable user-app data removal explicitly; this action does not back up its data")
         except (ValueError, PermissionError) as error:
             self.status.set(str(error)); return
 
@@ -164,6 +176,8 @@ class AppManagerPanel(JobPanel):
                 return client.start_activity(selected["component"])
             if operation == "chooser":
                 return client.home_chooser()
+            if operation == "remove":
+                return client.uninstall(selected["package"])
             if not selected["journal"]:
                 raise ValueError("Select a private transaction directory")
             transaction = AppTransaction(client, selected["journal"])
@@ -177,6 +191,8 @@ class AppManagerPanel(JobPanel):
                 transaction.home(selected["component"])
                 return {"home_changed": True, "component": selected["component"]}
             metadata = inspect_apk(selected["apk"], aapt=selected["aapt"])
+            if operation == "update":
+                return transaction.update(selected["apk"], metadata, aapt=selected["aapt"])
             return transaction.install(selected["apk"], metadata)
         self.start_job(job)
 

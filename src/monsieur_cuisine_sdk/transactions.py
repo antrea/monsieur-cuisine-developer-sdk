@@ -1,8 +1,9 @@
 """Durable ADB app/configuration transactions and restartable compensation.
 
 The journal is private device metadata. Keep it outside published source and
-back it up. Only newly added user apps and explicitly supported settings are
-changed; arbitrary package updates/data restoration are not implied. Every
+back it up. New user apps, checked debug-app replacements and explicitly
+supported settings are covered; arbitrary production/split-app data recovery
+is not implied. Every
 intent is persisted before the external command, including rollback intents.
 """
 from __future__ import annotations
@@ -17,8 +18,12 @@ from pathlib import Path
 import tempfile
 import sqlite3
 import re
+import uuid
+import shutil
 
-from .adb import AdbClient, AdbError, ApkMetadata, CapabilityError, SETTING_KEYS, MANAGER_PACKAGE, metadata_dict, package_name, component_name, normalized_component
+from .adb import AdbClient, AdbError, ApkMetadata, CapabilityError, SETTING_KEYS, MANAGER_PACKAGE, metadata_dict, package_name, component_name, normalized_component, inspect_apk
+from .backup.session import safe_relative
+from .backup.image import sha256_file
 
 
 def _seal(value):
@@ -51,10 +56,10 @@ def _exclusive_target(method):
 
 
 class AppTransaction:
-    """Write-ahead journal for app additions, settings and supported HOME changes.
+    """Write-ahead app additions/debug updates, settings and HOME compensation.
 
     Rolling back a new app removes its data created during this transaction.
-    Existing apps cannot be silently upgraded/removed. Conflicting external
+    Existing apps require the explicit checked update workflow. Conflicting external
     changes stop compensation instead of overwriting somebody else's changes.
     A crash after an ADB command but before recording its success is recoverable
     by inspecting Package Manager/settings and verifying the installed APK hash.
@@ -122,12 +127,19 @@ class AppTransaction:
         if not isinstance(data.get("actions"), list) or len(data["actions"]) > 1000:
             raise ValueError("invalid action journal")
         for action in data["actions"]:
-            if action.get("kind") not in ("install", "setting", "home") or action.get("phase") not in ("intent", "applied", "undo-intent", "undone"):
+            if action.get("kind") not in ("install", "update", "setting", "home") or action.get("phase") not in ("intent", "applied", "undo-intent", "undone"):
                 raise ValueError("unsupported transaction action")
             if action["kind"] == "install":
                 name = package_name(action["metadata"]["package"])
                 if name in data["baseline"]["packages"]:
                     raise ValueError("journal attempts to remove a pre-existing package")
+            elif action["kind"] == "update":
+                before, after = action["before"], action["after"]
+                if (package_name(before["package"]) != package_name(after["package"])
+                        or before["package"] not in data["baseline"]["packages"]
+                        or not before.get("debuggable") or not after.get("debuggable")):
+                    raise ValueError("invalid debug update journal")
+                self._local(action["snapshot"])
             elif action["kind"] == "setting":
                 if tuple(action["key"].split("/")) not in SETTING_KEYS:
                     raise ValueError("unsupported journal setting")
@@ -144,11 +156,17 @@ class AppTransaction:
         action = {"kind": kind, "phase": "intent", **values}
         self.data["actions"].append(action)
         self._save()
-        return action
+        return self.data["actions"][-1]
 
     def _applied(self):
         self.data["actions"][-1]["phase"] = "applied"
         self._save()
+
+    def _local(self, relative):
+        path = (self.directory / safe_relative(relative)).resolve()
+        if not path.is_relative_to(self.directory):
+            raise ValueError("application snapshot escapes transaction")
+        return path
 
     @_exclusive_target
     def install(self, apk, metadata: ApkMetadata):
@@ -162,6 +180,92 @@ class AppTransaction:
         result = self.client.install(apk, metadata)
         self._applied()
         return result
+
+    @_exclusive_target
+    def update(self, apk, metadata: ApkMetadata, *, aapt):
+        """Update an existing debug user app after a complete run-as snapshot.
+
+        Both APKs must be debuggable and monolithic. Rollback uses Android's
+        checked developer downgrade and keeps the UID/keystore/permissions;
+        an uninstall/reinstall fallback is deliberately not a data backup.
+        """
+        from .android_data import RunAsData
+        if self.data is None or metadata.package not in self.data["baseline"]["packages"]:
+            raise CapabilityError("begin a new transaction around an already installed user app")
+        self.client._mutating()
+        self.client._user_package(metadata.package)
+        if not metadata.debuggable:
+            raise CapabilityError("data-preserving rollback requires both APKs to be debuggable")
+        data = RunAsData(self.client)
+        uid = data.identity(metadata.package)
+        snapshot_relative = "updates/" + str(len(self.data["actions"])) + "-" + uuid.uuid4().hex
+        snapshot = self._local(snapshot_relative)
+        snapshot.mkdir(mode=0o700, parents=True)
+        previous = self.client.save_installed_apk(metadata.package, snapshot / "before.apk")
+        before = inspect_apk(previous, aapt=aapt)
+        if before.package != metadata.package or not before.debuggable:
+            raise CapabilityError("installed APK is not the expected debuggable package")
+        if not (before.version_code.isdecimal() and metadata.version_code.isdecimal()) or int(metadata.version_code) < int(before.version_code):
+            raise CapabilityError("forward update must not decrease the version code")
+        if self.client.installed_apk_hashes(before.package, workdir=self.directory) != [before.sha256]:
+            raise AdbError("installed APK changed during snapshot preparation")
+        replacement = snapshot / "after.apk"
+        shutil.copyfile(apk, replacement)
+        if replacement.stat().st_size != metadata.size or sha256_file(replacement) != metadata.sha256:
+            raise AdbError("replacement APK changed while its private copy was prepared")
+        action = self._intent("update", before=metadata_dict(before), after=metadata_dict(metadata),
+                              snapshot=snapshot_relative, before_uid=uid, snapshot_ready=False)
+        captured = data.snapshot(before.package, snapshot / "before-data")
+        action["snapshot_ready"] = True
+        action["data_archive_sha256"] = captured["archive_sha256"]
+        action["data_snapshot_sha256"] = _seal(captured)
+        self._save()
+        if self.client.installed_apk_hashes(before.package, workdir=self.directory) != [before.sha256]:
+            raise AdbError("installed APK changed before replacement; rollback required")
+        result = self.client.replace_apk(replacement, metadata)
+        if self.client.installed_apk_hashes(before.package, workdir=self.directory) != [metadata.sha256] or data.identity(before.package) != uid:
+            raise AdbError("updated APK or UID postcondition failed")
+        self._applied()
+        return {**result, "backup_verified": True, "same_uid": True, "rollback_available": True,
+                "data_scope": captured["scope"], "hardware_verified": False}
+
+    def _rollback_update(self, index):
+        from .android_data import RunAsData
+        action = self.data["actions"][index]
+        before, after = ApkMetadata(**action["before"]), ApkMetadata(**action["after"])
+        snapshot = self._local(action["snapshot"])
+        previous = snapshot / "before.apk"
+        if previous.is_symlink() or not previous.is_file() or sha256_file(previous) != before.sha256:
+            raise ValueError("previous APK snapshot failed integrity validation")
+        current = self.client.installed_apk_hashes(before.package, workdir=self.directory)
+        if current not in ([before.sha256], [after.sha256]):
+            raise AdbError("app changed outside this update; rollback stopped")
+        if not action["snapshot_ready"]:
+            if current != [before.sha256]:
+                raise AdbError("update occurred without a complete data snapshot; refusing data loss")
+            return
+        data = RunAsData(self.client)
+        captured = data.load(snapshot / "before-data")
+        if (captured["archive_sha256"] != action["data_archive_sha256"] or _seal(captured) != action["data_snapshot_sha256"]
+                or captured["package"] != before.package or captured["uid"] != action["before_uid"]
+                or data.identity(before.package) != action["before_uid"]):
+            raise AdbError("application data snapshot/UID does not match its journal")
+        # Preserve current post-update data before any restoration. Each retry
+        # gets a new copy, so an interrupted rollback never destroys that backup.
+        attempts = action.setdefault("rollback_data_copies", [])
+        if len(attempts) >= 32:
+            raise AdbError("rollback retry bound reached; private data copies remain available")
+        safety_name = "rollback-data-" + str(len(attempts))
+        attempts.append(safety_name)
+        self._save()
+        data.snapshot(before.package, snapshot / safety_name)
+        if current != [before.sha256]:
+            self.client.replace_apk(previous, before, debug_downgrade=True)
+        if self.client.installed_apk_hashes(before.package, workdir=self.directory) != [before.sha256]:
+            raise AdbError("original APK replacement was not verified")
+        restored = data.restore(snapshot / "before-data", workdir=self.directory)
+        if not restored["restored"]:
+            raise AdbError("application data restoration was not verified")
 
     @_exclusive_target
     def setting(self, namespace, key, value):
@@ -216,6 +320,8 @@ class AppTransaction:
                     if self.client.installed_apk_hashes(metadata["package"], workdir=self.directory) != [metadata["sha256"]]:
                         raise AdbError("installed app differs from transaction APK; rollback stopped")
                     self.client.uninstall(metadata["package"])
+            elif action["kind"] == "update":
+                self._rollback_update(index)
             elif action["kind"] == "setting":
                 namespace, key = action["key"].split("/")
                 value = self.client.read_setting(namespace, key)
@@ -247,6 +353,22 @@ class AppTransaction:
         baseline = self.data["baseline"]
         current = set(self.client.packages())
         removed = all(a["metadata"]["package"] not in current for a in self.data["actions"] if a["kind"] == "install")
+        updates = {}
+        for action in self.data["actions"]:
+            if action["kind"] == "update":
+                updates.setdefault(action["before"]["package"], action)
+        from .android_data import RunAsData
+        for package, action in updates.items():
+            if self.client.installed_apk_hashes(package, workdir=self.directory) != [action["before"]["sha256"]]:
+                raise AdbError("original updated APK postcondition failed")
+            if action["snapshot_ready"]:
+                data = RunAsData(self.client)
+                with tempfile.TemporaryDirectory(dir=self.directory, prefix="verify-data-") as temporary:
+                    actual = data.snapshot(package, Path(temporary) / "current")
+                expected = data.load(self._local(action["snapshot"]) / "before-data")
+                if (_seal(expected) != action["data_snapshot_sha256"] or actual["entries"] != expected["entries"]
+                        or actual["uid"] != expected["uid"] or expected["package"] != package):
+                    raise AdbError("original updated-app data postcondition failed")
         initial_settings = {}
         for action in self.data["actions"]:
             if action["kind"] == "setting":
@@ -262,5 +384,6 @@ class AppTransaction:
             raise AdbError("rollback postconditions failed")
         return {"rollback_verified": True, "added_apps_removed": removed, "settings_restored": restored,
                 "home_restored": home_ok, "baseline_packages_preserved": True,
+                "updated_apps_verified": len(updates),
                 "environment": "emulator" if self.client.serial.startswith("emulator-") else "explicit device",
                 "hardware_verified": False}

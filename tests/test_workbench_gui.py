@@ -59,6 +59,12 @@ class WorkbenchGuiTests(NativeGuiTestCase):
             assert not apps.serial.get()
             apps.run("install")
             assert not apps.busy and "explicitly" in apps.status.get()
+            apps.run("update")
+            assert not apps.busy and "explicitly" in apps.status.get()
+            apps.allow_changes.set(True)
+            apps.run("remove")
+            assert not apps.busy and "data removal" in apps.status.get()
+            apps.allow_changes.set(False)
             with tempfile.TemporaryDirectory() as temporary:
                 data = Path(temporary) / "vectors.jsonl"
                 fixture = Path("fixtures/oem/mcc_292_vectors.jsonl")

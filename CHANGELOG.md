@@ -23,7 +23,13 @@
   independent file verifier; cancellable supervised subprocess, no bundled code.
 - Native Backup import/stage/compare/external-verifier controls, plus operational
   Firmware Lab and Recovery panels; real Tk/file regression coverage.
-- Existing-app data/update workflows, supervised device acquisition, remaining
+- Checked debug-app updates with old/replacement APK snapshots, bounded run-as
+  sandbox capture, same-UID rollback and post-update safety copies. Actual API23
+  data/SQLite/prefs/cache/no_backup/keystore round trips and interruption recovery.
+- Android6 tar long-name and non-ASCII limitations handled by verified file
+  transfers; binary exec arguments retain original names without shell quoting.
+- Native/CLI update controls and explicit user-app removal with data-loss opt-in.
+- Supervised device acquisition, remaining
   OEM analysis and final acceptance are still in progress; not a finished release.
 
 
