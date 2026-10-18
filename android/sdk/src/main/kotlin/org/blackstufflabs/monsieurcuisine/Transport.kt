@@ -90,7 +90,8 @@ class TwinTcpTransport(val endpoint: TwinEndpoint, override val model: DeviceMod
                 if(remaining<=0) throw SocketTimeoutException("telemetry deadline expired")
                 found.socket.soTimeout=TimeUnit.NANOSECONDS.toMillis(remaining).coerceIn(1,100).toInt()
                 try {
-                    val chunk=ByteArray(4096)
+                    // 128 frames x 10-byte minimum envelope: one read cannot exceed the queue bound.
+                    val chunk=ByteArray(1280)
                     val count=found.socket.getInputStream().read(chunk)
                     if(count<0) throw EOFException("peer disconnected")
                     found.ready.addAll(found.parser.feed(chunk.copyOf(count)))

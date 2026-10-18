@@ -27,7 +27,12 @@ class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport): A
         try {
             transport.connect()
             synchronized(lifecycle) {
-                if(epoch.get()!=generation) throw IOException("client connection cancelled")
+                if(epoch.get()!=generation) {
+                    // close() ran before the transport had a session to close:
+                    // release the socket opened afterwards instead of leaking it.
+                    transport.close()
+                    throw IOException("client connection cancelled")
+                }
                 connecting=false
             }
         } catch(error: Exception) {
