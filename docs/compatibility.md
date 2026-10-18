@@ -2,10 +2,12 @@
 
 SDK 2.0 development (`2.0.0.dev0`) was tested locally on Windows 11 with CPython
 3.11.17–3.14.8 (all four minors), real Tk, Kotlin/JVM and offline Android builds.
-There is no hosted CI run for this unpushed branch. The demo still requires
-Android API 26 or newer; the backup's Android 6/API 23 does not meet that demo
-requirement. No appliance installation is supported or claimed. The table below
-retains the published v0.1.0 verification scope.
+There is no hosted CI run for this unpushed branch. The demo now requires API 23
+and passed installation, launch and both Activity-to-Tk integrations on an actual
+Android 6 emulator. ADB install/rollback also passed actual API 23 and native Tk
+workflows. None of these results validates the physical MCC. See
+[ADB scope](usb-toolkit.md) and [independent OEM execution](oem-conformance.md).
+The table below retains the published v0.1.0 verification scope.
 
 The SDK targets Python **3.11+** on Windows, Linux and macOS using one Python/Tk codebase. This page separates completed local/hosted evidence and device-profile compatibility. Later interpreter versions require their own verification.
 

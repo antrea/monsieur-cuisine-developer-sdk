@@ -4,7 +4,7 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId = "org.blackstufflabs.monsieurcuisine.demo"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "2.0.0-dev0"

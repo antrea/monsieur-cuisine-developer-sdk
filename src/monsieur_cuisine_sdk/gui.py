@@ -90,7 +90,7 @@ class DesktopApp:
         self.message=tk.StringVar(value="Synthetic physics. No appliance connected. Default startup opens no listener.")
         ttk.Label(shell,textvariable=self.message,style="Muted.TLabel",wraplength=1140).pack(side="bottom",fill="x",pady=(10,0))
         self.notebook=ttk.Notebook(shell);self.notebook.pack(fill="both",expand=True)
-        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information","Backup")
+        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information","Backup","Toolkit")
         for name in names:
             frame=ttk.Frame(self.notebook,padding=14);self.notebook.add(frame,text=name);self._tab_frames[name]=frame
         self.values={key:tk.StringVar() for key in ("speed","temperature","weight","lid","error","firmware","clock","direction")}
@@ -98,6 +98,8 @@ class DesktopApp:
         self._protocol();self._scenarios();self._timeline();self._android();self._settings();self._information()
         from .backup.gui import BackupPanel
         self.backup_panel=BackupPanel(self._tab_frames["Backup"])
+        from .workbench import ToolkitPanel
+        self.toolkit_panel=ToolkitPanel(self._tab_frames["Toolkit"])
         self._load_profile_controls();self.refresh();self._after=root.after(50,self.poll)
 
     def _card(self,parent,label,key):
@@ -461,6 +463,7 @@ class DesktopApp:
     def close(self):
         if self.closed:return
         self.backup_panel.close()
+        self.toolkit_panel.close()
         self.cancel_job();self.disable_android();self.twin.disarm();self.closed=True
         if self._after:
             self.root.after_cancel(self._after);self._after=None

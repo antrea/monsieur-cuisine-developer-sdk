@@ -5,8 +5,8 @@ operations are described in [Backup Manager](backup.md) and [USB toolkit](usb-to
 
 | Level | Available implementation | Verification |
 |---|---|---|
-| Application transaction rollback | In-memory package/launcher baseline, plan application and rollback equality | Automated sandbox tests; no device changes |
-| Software/configuration restoration | No device writer; backup metadata can be inspected read-only | Hardware behavior unverified |
+| Application transaction rollback | Durable ADB journal, verified removal of added user APKs, supported HOME/settings compensation | Actual API 23 emulator tests including interrupted install/rollback; no physical MCC changes |
+| Software/configuration restoration | Supported screen settings restored via ADB; general app data/update recovery unfinished | Actual API 23 settings restoration; MCC hardware unverified |
 | Full firmware restoration | No flasher or executable recovery procedure | Not implemented or tested on hardware |
 
 Integrity means matching recorded hashes and valid structures. Completeness
@@ -15,7 +15,9 @@ RPMB and the evidence for gaps. Restorability additionally requires compatible
 hardware, boot/security state and actual successful device recovery. Neither a
 full-area hash nor a simulator result establishes that third property.
 
-No signing keys/certificates, security bypasses, partition writers or physical
-motor/heater commands are included. Keep original backup archives immutable and
+No OEM signing keys/certificates, security bypasses or partition writers are
+included. The optional serial driver exposes controlled active host commands
+only after explicit opt-in; it is never used for physical robot tests here.
+Keep original backup archives immutable and
 private. The external backup tool is a separate GPL application whose output
 format the SDK can inspect; it is never automatically executed.

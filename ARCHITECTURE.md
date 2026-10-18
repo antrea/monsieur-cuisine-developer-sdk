@@ -21,8 +21,10 @@ Backup tab / mc-backup -> read-only session -> GPT/image/ext4 readers
                          |                   -> sanitized inventory/reports
                          + external MCC Backup format adapter (no tool launch)
 
-mc-usb -> opt-in read-only ADB diagnostics
-       -> offline application plan / transaction sandbox / rollback rehearsal
+mc-usb / native Toolkit tab -> explicit-target AdbClient -> Android Package Manager
+                           -> AppTransaction -> durable journal / compensation
+MCCSerialSession -> explicit SerialTransport (optional pyserial) or RX trace replay
+Conformance lab / verifier -> independent recorded references or isolated OEM DEX
 ```
 
 The PowerBoard endpoint accepts selected original binary frames. High-level
@@ -46,10 +48,16 @@ absolute workstation paths. Report export creates a new file outside the
 source session. Normal desktop startup performs no device discovery, ADB call,
 network bind or backup-file read.
 
-The USB component supplies only an allowlisted read executor and a separate
-local transaction model. APK/launcher changes can be rehearsed against that
-model; there is no write-capable device executor or firmware restore path. This
-boundary is visible in the CLI output and [USB guide](docs/usb-toolkit.md).
+The USB component now has an explicit-target ADB executor for user-app and
+supported-setting changes, plus durable write-ahead rollback. Legacy sandbox
+rehearsal is kept separate. Package Manager checks signatures; system/OEM
+replacement and general private-app-data restoration are not supported.
+The native Toolkit uses the same APIs, with one bounded worker per panel.
+The [USB guide](docs/usb-toolkit.md) describes remaining launcher limitations.
+Serial monitoring is receive-only unless active mode is deliberately enabled;
+no firmware/partition writer is supplied. The independent
+[OEM probe](docs/oem-conformance.md) directly executes original DEX on an
+explicit API 23 emulator without a Digital Twin or SDK codec dependency.
 
 See [OEM policy](docs/mcc-oem-policy.md), [backup](docs/backup.md),
 [recovery scope](docs/recovery.md), [existing architecture](docs/architecture.md)

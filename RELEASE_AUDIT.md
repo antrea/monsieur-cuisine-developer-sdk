@@ -2,7 +2,11 @@
 
 ## SDK 2.0 local development checkpoint — 2026-10-18
 
-This branch is `2.0.0.dev0`, not a published SDK 2.0 release. Current verification:
+This branch is `2.0.0.dev0`, not a published SDK 2.0 release. The following is
+the **previous checkpoint**, before the in-progress completion extension.
+The extension adds explicit serial transport, actual API 23 ADB transactions,
+native Toolkit panels and [direct OEM ART execution](docs/oem-conformance.md).
+Final completion gates remain open. Previous checkpoint verification:
 184 Python tests passed on each of Python 3.11–3.14/Windows; 29 Kotlin/JVM tests
 passed; both JVM clients exercised the same native Tk/model instance. Backup
 integrity/reconstruction and privacy-minimized inventory were exercised on the

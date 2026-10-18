@@ -1,8 +1,8 @@
-"""Opt-in read-only ADB diagnostics and offline application rollback rehearsal.
+"""Explicit-target ADB tools, durable application rollback and offline rehearsal.
 
-No write-capable ADB executor is supplied. An application plan is a local data
-model, never evidence that an APK can run on an appliance. No signing material
-or APK internals are read. Firmware restoration is not implemented.
+Legacy plan/rehearse commands remain explicitly synthetic. Operational commands
+use Android Package Manager; application changes require a separate opt-in.
+No command enables ADB, obtains root or writes appliance firmware/partitions.
 """
 from copy import deepcopy
 import json
@@ -11,6 +11,7 @@ import re
 import subprocess
 
 from .backup.image import sha256_file
+from .adb import AdbError
 
 PROPERTIES = ("ro.build.version.release", "ro.build.version.sdk", "ro.product.model", "ro.product.manufacturer")
 
@@ -110,13 +111,32 @@ def main(argv=None):
     plan.add_argument("--package", required=True); plan.add_argument("--minimum-sdk", type=int, required=True)
     plan.add_argument("--output", type=Path)
     rehearsal = sub.add_parser("rehearse"); rehearsal.add_argument("plan", type=Path)
+    for operation in ("devices", "info", "apps", "install", "remove", "start", "home", "home-chooser", "config", "rollback"):
+        command = sub.add_parser(operation)
+        command.add_argument("--adb", required=True)
+        command.add_argument("--serial", required=operation != "devices", help="exact authorized ADB target; never selected automatically")
+        command.add_argument("--server-port", type=int, default=5037)
+        command.add_argument("--allow-app-changes", action="store_true")
+        if operation in ("install", "config", "home", "rollback"):
+            command.add_argument("--journal", type=Path, required=True)
+        if operation == "install":
+            command.add_argument("apk", type=Path)
+            command.add_argument("--aapt", required=True)
+        elif operation == "remove":
+            command.add_argument("package")
+            command.add_argument("--allow-data-removal", action="store_true")
+        elif operation in ("start", "home"):
+            command.add_argument("component")
+        elif operation == "config":
+            command.add_argument("key", choices=("screen_brightness", "screen_off_timeout"))
+            command.add_argument("value")
     args = parser.parse_args(argv)
     try:
         if args.command == "diagnostics":
             result = ReadOnlyADB(args.adb).diagnose()
         elif args.command == "plan":
             result = application_plan(args.apk, args.package, minimum_sdk=args.minimum_sdk)
-        else:
+        elif args.command == "rehearse":
             if args.plan.stat().st_size > 65536:
                 raise ValueError("plan too large")
             data = json.loads(args.plan.read_text('utf-8'))
@@ -125,14 +145,56 @@ def main(argv=None):
             after = sandbox.rollback()
             result = {"simulation": True, "rollback_matches_snapshot": before == after,
                       "hardware_commands_sent": 0, "restoration_tested_on_hardware": False}
+        else:
+            from .adb import AdbClient, AdbError, inspect_apk
+            from .transactions import AppTransaction
+            client = AdbClient(args.adb, serial=args.serial or "enumeration-only", server_port=args.server_port,
+                               application_changes=args.allow_app_changes)
+            if args.command in ("install", "config", "home", "rollback"):
+                if not args.allow_app_changes:
+                    raise PermissionError("explicit --allow-app-changes required")
+                transaction = AppTransaction(client, args.journal)
+                if args.command == "rollback" or args.journal.exists():
+                    transaction.load()
+                else:
+                    transaction.begin()
+            try:
+                if args.command == "devices":
+                    result = {"devices": client.devices()}
+                elif args.command == "info":
+                    result = client.diagnose()
+                elif args.command == "apps":
+                    result = {"user_packages": client.packages(kind="user"), "homes": client.home_preferences()}
+                elif args.command == "install":
+                    result = transaction.install(args.apk, inspect_apk(args.apk, aapt=args.aapt))
+                elif args.command == "remove":
+                    if not args.allow_data_removal:
+                        raise PermissionError("--allow-data-removal is required to remove an app and its data")
+                    result = client.uninstall(args.package)
+                elif args.command == "start":
+                    result = client.start_activity(args.component)
+                elif args.command == "home":
+                    transaction.home(args.component)
+                    result = {"home": args.component, "persistent": True}
+                elif args.command == "home-chooser":
+                    result = client.home_chooser()
+                elif args.command == "config":
+                    transaction.setting("system", args.key, args.value)
+                    result = {"setting": args.key, "updated": True}
+                else:
+                    result = transaction.rollback()
+            except AdbError as exc:
+                print(json.dumps({"error": str(exc), "completed": False})); return 2
         if getattr(args, 'output', None):
             with args.output.open('x', encoding='utf-8', newline='\n') as handle:
                 handle.write(json.dumps(result, indent=2) + '\n')
         else:
             print(json.dumps(result, indent=2))
         return 0
+    except AdbError as exc:
+        print(json.dumps({"error": str(exc), "completed": False})); return 2
     except (ValueError, OSError, KeyError, TypeError, subprocess.TimeoutExpired):
-        print(json.dumps({"error": "USB diagnostic or offline plan rejected"})); return 2
+        print(json.dumps({"error": "USB operation rejected; check arguments, opt-in and private journal", "completed": False})); return 2
 
 
 if __name__ == "__main__":

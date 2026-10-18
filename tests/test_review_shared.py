@@ -519,7 +519,9 @@ class SharedGuiIndependentReview(NativeGuiTestCase):
 
     def test_actual_widgets_show_explicit_model_units_and_fresh_switch_state(self):
         from monsieur_cuisine_sdk.gui import MODELS
-        self.assertEqual(len(self.app.notebook.tabs()), 12)
+        self.assertEqual(len(self.app.notebook.tabs()), 13)
+        self.assertIn('Toolkit', self.app._tab_frames)
+        self.assertTrue(self.app.toolkit_panel.panels)
         self.app.twin.start_motor(3)
         self.app.twin.advance(.5)
         self.app.refresh()

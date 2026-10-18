@@ -10,7 +10,11 @@
 > below describe that published baseline; this local branch has its own test
 > evidence and has not been pushed or released. Start with [SDK 2.0 architecture](ARCHITECTURE.md),
 > [Backup Manager](docs/backup.md), [MCC OEM policy](docs/mcc-oem-policy.md),
-> [USB diagnostics/sandbox](docs/usb-toolkit.md) and [recovery limits](docs/recovery.md).
+> [ADB application transactions](docs/usb-toolkit.md), [serial driver](docs/hardware-transport.md),
+> [independent ART conformance](docs/oem-conformance.md) and [recovery limits](docs/recovery.md).
+> The completion extension is still in progress: an operational API 23 installer/
+> rollback and native Toolkit panels exist; general app updates, alternative
+> launcher, full Backup/Recovery workflows and final acceptance remain unfinished.
 
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 

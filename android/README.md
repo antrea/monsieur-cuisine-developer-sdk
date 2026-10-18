@@ -17,7 +17,7 @@ The SDK JAR is `sdk/build/libs/sdk-0.1.0.jar`; it needs the Kotlin standard libr
 ## Open and run in Android Studio
 
 1. Open the repository's `android` directory, containing `settings.gradle.kts`, as the Android Studio project. Let Gradle sync complete. Use JDK 17 or 21 for Gradle and install the SDK packages listed above if they are missing.
-2. Start a standard Android Studio emulator running API 26 or newer. Select the `demo` application and its **debug** build variant, then Run it on that emulator. The release variant deliberately refuses the simulation connection.
+2. Start a standard Android Studio emulator running API 23 or newer. Select the `demo` application and its **debug** build variant, then Run it on that emulator. The release variant deliberately refuses the simulation connection.
 3. On the desktop, start the Python application with `python -m monsieur_cuisine_sdk`, select **MCC** or **MCS**, and enable **Android Connection** in that same window. See the repository [quick start](../README.md) for Python installation.
 4. Select the same model in the Android demo. Use port **8765 for MCC** or **8766 for MCS**, matching the desktop listener, and press **Connect**. The demo automatically uses **10.0.2.2**, the emulator's address for the desktop host. The desktop listener binds **127.0.0.1**; do not change that bind address to 10.0.2.2.
 5. Choose speed, direction and an offered temperature, then press **START / apply**. Observe the synthetic state and HEX frames in both applications. Press **STOP**, wait for observed motion to reach zero, and disconnect when finished. Changing the model or backgrounding the Android app disconnects it.

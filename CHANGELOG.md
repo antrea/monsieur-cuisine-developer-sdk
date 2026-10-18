@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — full-completion work in progress
+
+- Native Toolkit panels use operational ADB and recorded-reference conformance APIs.
+- Explicit MCC serial transport, receive-only default, strict active host gates,
+  latched TX, RX expiry, fault handling and trace replay; optional pyserial extra.
+- Actual ADB install/list/start/remove and supported settings, explicit target and
+  mutation opt-in, protected-package rejection, durable restartable rollback.
+- API 23 demo compatibility, actual install/start and both Activity-to-Tk tests.
+- Independent no-SDK-code OEM probe executes original DEX directly on API 23 ART;
+  all 57,998 codec/conversion references match. Public verifier preserves private
+  input isolation and records APK/DEX provenance. Calibration serialization is
+  now compared as well as decoded.
+- Existing-app data/update workflows, alternative launcher, remaining Backup/
+  Recovery UI and final acceptance are still in progress; not a finished release.
+
+
 ## 2.0.0.dev0 — local development, not published
 
 - Read-only backup/session and bounded GPT/ext4/Android-boot/MTK image readers;

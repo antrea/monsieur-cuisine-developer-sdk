@@ -81,8 +81,12 @@ The optional `CookingHost` uses virtual time above the twin, not a new controlle
 `backup.verify.verify_session`, `backup.inventory.inventory_session` and
 `backup.external.MCCBackupAdapter` provide local read-only backup operations.
 Use `mc-backup` or the native Backup tab; see [backup API/CLI](backup.md).
-The optional [USB toolkit](usb-toolkit.md) separates read-only ADB diagnostics
-from offline application transaction/rollback rehearsal. It has no device writer.
+The optional [USB toolkit](usb-toolkit.md) provides `AdbClient` and durable
+`AppTransaction` install/configuration/rollback operations on an explicit target.
+Legacy plan/rehearse remain synthetic. [Hardware transport](hardware-transport.md)
+provides receive-only-by-default serial sessions, and
+[conformance](oem-conformance.md) compares independent recorded references.
+No firmware/partition writer or implicit device access is exposed.
 
 ## State and units
 

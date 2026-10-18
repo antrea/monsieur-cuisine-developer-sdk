@@ -15,9 +15,13 @@ keywords = ["lidl", "silvercrest", "monsieur-cuisine", "mcc", "mcs", "digital-tw
 dependencies = []
 classifiers = ["Programming Language :: Python :: 3 :: Only", "Operating System :: OS Independent", "Development Status :: 3 - Alpha"]
 
+[project.optional-dependencies]
+serial = ["pyserial>=3.5,<4"]
+
 [project.scripts]
 mc-backup = "monsieur_cuisine_sdk.backup.cli:main"
 mc-usb = "monsieur_cuisine_sdk.usb:main"
+mc-hardware = "monsieur_cuisine_sdk.hardware:main"
 mc-sdk = "monsieur_cuisine_sdk.cli:main"
 monsieur-cuisine-digital-twin = "monsieur_cuisine_sdk.__main__:main"
 
