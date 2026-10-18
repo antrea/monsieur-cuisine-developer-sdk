@@ -7,12 +7,59 @@ One Android Studio project, one Kotlin client, one duplex TCP transport and one 
 Use JDK 17 or 21, Android SDK platform 35 and build-tools 35.0.0. Set `ANDROID_HOME` to your licensed local SDK installation, or set `sdk.dir` in an untracked `local.properties`. Open this directory in Android Studio.
 
 ```sh
-./gradlew :sdk:test :sdk:assemble :demo:assembleDebug :demo:assembleDebugAndroidTest
+./gradlew :sdk:test :sdk:assemble :demo:assembleDebug :demo:assembleDebugAndroidTest \
+  :manager:assembleDebug :manager:assembleDebugAndroidTest :manager:lintDebug \
+  :oemprobe:assembleDebug :oemprobe:lintDebug
 ```
 
 On Windows use `gradlew.bat`. Gradle 8.13's distribution checksum is pinned. Kotlin 2.3.21 and Android Gradle Plugin 8.13.2 are declared once at the project root. Android dependency installation is disabled; install required SDK packages separately. The JVM SDK can also be tested with `-PincludeAndroidDemo=false` (the root build still resolves its declared plugins).
 
-The SDK JAR is `sdk/build/libs/sdk-0.1.0.jar`; it needs the Kotlin standard library on its runtime classpath. The installable developer APK is `demo/build/outputs/apk/debug/demo-debug.apk`. Release APK output is unsigned and intentionally disables the demo connection. No signing keys are supplied.
+The development SDK JAR is `sdk/build/libs/sdk-2.0.0-dev0.jar`; it needs the Kotlin standard library on its runtime classpath. The installable developer APK is `demo/build/outputs/apk/debug/demo-debug.apk`. Release APK output is unsigned and intentionally disables the demo connection. No signing keys are supplied.
+
+## Native Manager and independent reference probes
+
+All application modules retain **minSdk 23**, including Manager and oemprobe.
+Manager is an ordinary user-space HOME/app list with a user-selected SAF APK
+installer. It leaves protected system/OEM apps intact; Android owns install and
+uninstall consent. PackageInstaller streams close once before commit, and a
+committed session is never abandoned by post-commit cleanup errors.
+
+Manager's test-only DocumentsProvider supplies one independent developer APK to
+the real DocumentsUI; it is absent from the runtime APK. `ConsentInstrumentation`
+drives actual system controls for source permission, SAF selection, cancellation
+and installation approval. It requires an API23 software emulator and a fresh
+`org.blackstufflabs.monsieurcuisine.demo.consenttest.debug` fixture, built with
+`-PdemoApplicationId=org.blackstufflabs.monsieurcuisine.demo.consenttest`.
+Supply that APK privately, hash it, and place a copy in the test provider's
+`files/consent-fixture.apk` sandbox using `run-as` for the test package. This
+bootstrap copies a test document; it does not install the fixture app. Invoke:
+
+```sh
+adb -s SELECTED_EMULATOR install -t -r manager/build/outputs/apk/debug/manager-debug.apk
+adb -s SELECTED_EMULATOR install -t -r manager/build/outputs/apk/androidTest/debug/manager-debug-androidTest.apk
+adb -s SELECTED_EMULATOR push PRIVATE_FIXTURE_APK /data/local/tmp/mc-sdk-consent-fixture.apk
+adb -s SELECTED_EMULATOR shell run-as org.blackstufflabs.monsieurcuisine.manager.test mkdir -p files
+adb -s SELECTED_EMULATOR shell run-as org.blackstufflabs.monsieurcuisine.manager.test \
+  cp /data/local/tmp/mc-sdk-consent-fixture.apk files/consent-fixture.apk
+adb -s SELECTED_EMULATOR shell am instrument -w -r \
+  -e apk /data/local/tmp/mc-sdk-consent-fixture.apk -e sha256 FIXTURE_SHA256 \
+  org.blackstufflabs.monsieurcuisine.manager.test/org.blackstufflabs.monsieurcuisine.manager.ConsentInstrumentation
+```
+
+The remote input must begin `/data/local/tmp/mc-sdk-consent-`. The test uses
+normal Settings UI for the unknown-source preference and restores its original
+value. Keep these emulator tests separate from physical USB/mount claims.
+Use a fresh emulator for this test; a preexisting fixture package is rejected.
+After recording the result, remove only these test-owned packages/documents and
+rebuild `:demo:assembleDebug :demo:assembleDebugAndroidTest` without the custom
+applicationId property to restore the normal demo outputs. The provider and
+instrumentation are test artifacts, never a requirement for the Manager.
+
+The [OEM conformance probes](../docs/oem-conformance.md) use owner-supplied
+private DEX/native inputs, never bundled firmware. The pure ART harness covers
+57,998 codec/conversion records. The separate x86 JNI harness proves software
+PTY open; its reproduced original close failure is explicitly not a passing
+close test. No normal application startup requires either probe or emulator.
 
 ## Open and run in Android Studio
 
@@ -29,12 +76,12 @@ If connection fails, check that the desktop connection is enabled, the selected 
 The demo in this repository uses a Gradle project dependency. Your own application can consume the packaged JAR independently:
 
 1. Run `./gradlew :sdk:assemble` from this directory (`gradlew.bat` on Windows).
-2. Copy `sdk/build/libs/sdk-0.1.0.jar` into your application's `app/libs` directory.
+2. Copy `sdk/build/libs/sdk-2.0.0-dev0.jar` into your application's `app/libs` directory.
 3. Add these dependencies to your application's `app/build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation(files("libs/sdk-0.1.0.jar"))
+    implementation(files("libs/sdk-2.0.0-dev0.jar"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")
 }
 ```

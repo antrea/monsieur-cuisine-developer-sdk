@@ -129,6 +129,16 @@ records disabled/debuggable defaults, privileged OEM update context and the
 USB Host declaration. It does not establish USB-stick autorun, a physical ADB
 activation procedure or permanence of an alternative HOME through OEM updates.
 
+The ordinary Android Manager has also been exercised through real API23 system
+UI: its install button opens DocumentsUI, a test-only SAF provider supplies an
+independent developer APK, Cancel preserves absence, and Install requires normal
+PackageInstaller consent before the package appears. The test enables the source
+preference through Settings UI and restores its original value. The fixture is
+copied for the provider, never installed through ADB. A real regression reproduced
+API23's non-idempotent session-stream close; the Manager now closes that stream
+once before commit and does not abandon committed sessions during cleanup.
+Build and reproduction details are in the [Android project](../android/README.md).
+
 Legacy plan/rehearse remain explicitly synthetic; they are not the evidence
 for operational ADB behavior. See [recovery](recovery.md),
 [OEM conformance](oem-conformance.md) and [serial transport](hardware-transport.md).

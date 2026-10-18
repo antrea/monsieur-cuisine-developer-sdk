@@ -12,6 +12,11 @@
   all 57,998 codec/conversion references match. Public verifier preserves private
   input isolation and records APK/DEX provenance. Calibration serialization is
   now compared as well as decoded.
+- Separate pinned x86 JNI probe verifies original open/invalid-baud on software
+  PTY. Original close's missing mFd field/native abort is reproduced and reported
+  as a failure; probe cleanup is explicitly not an original JNI close proof.
+- Manager instrumentation includes an independent test-only SAF document source
+  and actual PackageInstaller cancellation/confirmation controls on API23.
 - Native API 23 App/Launcher Manager with protected shell query/clear-own-HOME
   companion. Persistent HOME and rollback tested through stock Settings, including
   restoring an implicit original HOME. No OEM package is changed.

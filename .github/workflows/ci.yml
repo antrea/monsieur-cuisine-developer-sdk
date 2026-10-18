@@ -76,7 +76,7 @@ jobs:
         run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
       - name: Kotlin JVM tests, SDK JAR and Android debug/instrumentation compilation
         working-directory: android
-        run: bash gradlew :sdk:test :sdk:jar :sdk:sourcesJar :sdk:hostJar :demo:assembleDebug :demo:assembleDebugAndroidTest :manager:assembleDebug :manager:lintDebug :oemprobe:assembleDebug :oemprobe:lintDebug --no-daemon
+        run: bash gradlew :sdk:test :sdk:jar :sdk:sourcesJar :sdk:hostJar :demo:assembleDebug :demo:assembleDebugAndroidTest :manager:assembleDebug :manager:assembleDebugAndroidTest :manager:lintDebug :oemprobe:assembleDebug :oemprobe:lintDebug --no-daemon
       - name: Both Kotlin JVM clients against actual binary Python sessions
         run: |
           python tools/verify_android.py --model mcc

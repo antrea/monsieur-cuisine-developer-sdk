@@ -19,6 +19,11 @@
 > remaining OEM analysis and final acceptance remain
 > unfinished. These are development features, not a final SDK 2.0 release.
 
+The latest completion checks include 265 Python tests, repeated execution of
+57,998 original DEX references and actual API23 Manager SAF/installation consent.
+The separate original JNI probe verifies software PTY open and records an
+original close failure explicitly; it does not claim physical controller validation.
+
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 
 Use it to explore the original protocol bytes, build an application, test motor-control logic, inject sensor faults and reproduce a debugging session. The virtual PowerBoards maintain state and generate dynamic binary telemetry. Their physics are synthetic; the project does not certify software for a real appliance.

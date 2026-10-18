@@ -1,24 +1,48 @@
 # Validation and reproducibility
 
-## SDK 2.0 local development verification (2026-10-18)
+## SDK 2.0 completion development verification (2026-10-18)
 
-The `2.0.0.dev0` local branch passed **184 Python tests on each of CPython
-3.11.17, 3.12.15, 3.13.16 and 3.14.8 on Windows 11**, including real Tk widgets,
-the Backup tab and loopback integration. **29 Kotlin/JVM tests** passed offline;
-both packaged JVM clients also passed against the actual native desktop/model.
-No Android Activity/emulator or physical appliance was exercised in this phase.
+The latest complete local suite passed **265 Python tests in 102.928 seconds on
+CPython 3.13/Windows**, including actual Tk widgets, backup/recovery file flows,
+ADB transaction fault models and real pyserial software loopback. The earlier
+184-test checkpoint passed on Python 3.11–3.14; that older matrix is not a final
+cross-platform verification of all subsequent changes. This branch is still
+`2.0.0.dev0`, unpushed and not a completed SDK 2.0 release.
+All **29 Kotlin/JVM tests** were also executed again, with zero failures; the
+normal API23 demo/debug-instrumentation outputs were rebuilt after the dedicated
+consent fixture build. Build/lint for Manager, its instrumentation and oemprobe
+passed locally. Remote hosted jobs for this branch have not run.
 
-The complete 57,998-record private OEM differential was re-compared with zero
-mismatches; the 9,642-record public subset runs in the suite. The updated ext4
-reader still matched an independent 7-Zip extraction for 1,421 regular files,
-155 symlinks and 277 directories. The actual backup was re-hashed/reconstructed
-successfully and inventory produced 21 partitions and 68 system app folders.
-No personal userdata entries or APK internals were inspected.
+The independent build-292 DEX was executed directly on API23 ART: **57,998
+codec/conversion comparisons, zero disagreements**, repeated with the updated
+probe APK. The 9,642-record public subset also runs in the offline suite. A
+separate actual original x86 JNI execution verified software PTY open and
+invalid-baud rejection. Its original close failed due to the missing `mFd`
+field and that failure was reproduced; it is not a passing native-close test.
+See [OEM execution and provenance](oem-conformance.md).
 
-The published v0.1.0 hosted results below are historical baseline evidence;
-they are **not hosted CI results for this unpushed development branch**.
-USB write/installation and hardware restoration are not claimed by fake-ADB or
-offline rollback tests. See [USB](usb-toolkit.md), [backup](backup.md) and
+Real API23 emulator tests cover both demo Activities communicating with Tk,
+actual APK installation/list/start, persistent HOME selection and rollback,
+same-UID debug-app updates with data/SQLite/preferences/keystore continuity and
+interrupted recovery. Manager's normal SAF → PackageInstaller UI flow now covers
+cancel, required consent, successful installation and restoration of the source
+permission setting through system UI. These are ordinary app operations on an
+emulator; the root-forced adbd and emulator SELinux domain do not prove the
+privilege policy of a physical MCC. Mock ADB tests remain internal regressions,
+separate from these actual Android runs.
+
+The actual owner's backup was imported through Tk, materialized as a new
+15,634,268,160-byte image, compared across 21 partitions and checked through the
+original external file verifier. The ext4 reader's earlier independent 7-Zip
+comparison covered 1,421 regular files, 155 symlinks and 277 directories.
+Original APK internals, platform/updater configuration and native libraries have
+also been analyzed privately; no OEM bytes or personal backup data are shipped.
+
+The published v0.1.0 hosted results below are historical baseline evidence,
+**not hosted CI results for this unpushed development branch**. Full final
+packaging, consolidated conformance coverage and acceptance remain open. No
+physical UART, robot actuation, eMMC restore or hardware safety result is claimed.
+See [USB](usb-toolkit.md), [backup](backup.md), [recovery](recovery.md) and
 [host evidence levels](mcc-oem-policy.md).
 
 After an editable install, run from the repository root:

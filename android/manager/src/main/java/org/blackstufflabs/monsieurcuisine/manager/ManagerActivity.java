@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -108,6 +109,7 @@ public final class ManagerActivity extends Activity {
         new Thread(() -> {
             PackageInstaller installer = getPackageManager().getPackageInstaller();
             int id = -1;
+            boolean committed = false;
             File cached = null;
             try {
                 cached = File.createTempFile("selected-", ".apk", getCacheDir());
@@ -131,22 +133,27 @@ public final class ManagerActivity extends Activity {
                     if ((existing.flags & ApplicationInfo.FLAG_SYSTEM) != 0) throw new SecurityException("system replacement is not supported");
                 } catch (PackageManager.NameNotFoundException newApplication) { /* new user application */ }
                 id = installer.createSession(new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL));
-                try (PackageInstaller.Session session = installer.openSession(id);
-                     InputStream input = new FileInputStream(cached);
-                     OutputStream output = session.openWrite("base.apk", 0, -1)) {
-                    if (input == null) throw new java.io.IOException("no APK stream");
-                    byte[] block = new byte[65536]; int read; long total = 0;
-                    while ((read = input.read(block)) != -1) {
-                        total += read; if (total > 512L * 1024 * 1024) throw new java.io.IOException("APK size bound exceeded");
-                        output.write(block, 0, read);
+                try (PackageInstaller.Session session = installer.openSession(id)) {
+                    // Close the FileBridge stream exactly once, before commit.
+                    // API23's second close can throw; abandoning after commit
+                    // would invalidate the system's pending consent session.
+                    try (InputStream input = new FileInputStream(cached);
+                         OutputStream output = session.openWrite("base.apk", 0, -1)) {
+                        byte[] block = new byte[65536]; int read; long total = 0;
+                        while ((read = input.read(block)) != -1) {
+                            total += read; if (total > 512L * 1024 * 1024) throw new java.io.IOException("APK size bound exceeded");
+                            output.write(block, 0, read);
+                        }
+                        session.fsync(output);
                     }
-                    session.fsync(output); output.close();
                     Intent statusIntent = new Intent(this, InstallStatusReceiver.class);
                     int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
                     session.commit(PendingIntent.getBroadcast(this, id, statusIntent, flags).getIntentSender());
+                    committed = true;
                 }
             } catch (Exception error) {
-                if (id >= 0) { try { installer.abandonSession(id); } catch (Exception ignored) { /* already committed/closed */ } }
+                Log.e("MCSDK_INSTALL", "User-selected APK installation failed", error);
+                if (id >= 0 && !committed) { try { installer.abandonSession(id); } catch (Exception ignored) { /* already closed */ } }
                 runOnUiThread(() -> status.setText("APK installation unavailable: " + error.getClass().getSimpleName()));
             } finally {
                 if (cached != null) cached.delete();

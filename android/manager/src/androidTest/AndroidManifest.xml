@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Test-only SAF source, restricted to Android's document service. -->
+        <provider android:name="org.blackstufflabs.monsieurcuisine.manager.FixtureDocumentsProvider"
+            android:authorities="org.blackstufflabs.monsieurcuisine.manager.test.documents"
+            android:exported="true" android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter><action android:name="android.content.action.DOCUMENTS_PROVIDER" /></intent-filter>
+        </provider>
+    </application>
+</manifest>

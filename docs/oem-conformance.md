@@ -5,9 +5,10 @@ Rebuilding the older dex2jar/JVM reference reproduced all 57,998 prior records.
 The independent `android/oemprobe` now also executes the original DEX directly
 on Android 6/API 23 ART, without a conversion step.
 
-The probe contains only reflection/input/output code: no SDK codec dependency,
-OEM classes/assets or INTERNET permission. It never instantiates UART/services.
-Only named PowerBoard, CookingUtils and Limits methods run.
+`ReferenceInstrumentation` contains only reflection/input/output code: no SDK
+codec dependency, OEM classes/assets or INTERNET permission. It never
+instantiates UART/services. Only named PowerBoard, CookingUtils and Limits
+methods run. A separate optional native probe has its own narrower scope below.
 
 ```sh
 # From android/: use gradlew.bat on Windows
@@ -45,3 +46,20 @@ Results are OEM DYNAMIC VERIFIED for these host methods only. Decompiled
 cooking rules remain OEM STATIC VERIFIED; synthetic models/transport tests
 remain INTERNAL TESTED. The MCU, real UART, motor/heater dynamics and restore
 safety remain UNVERIFIED. No HARDWARE VERIFIED result is claimed.
+
+## Original JNI execution, separate from codec conformance
+
+`NativeSerialInstrumentation` and `tools/verify_oem_native.py` load the pinned
+original x86 serial library with the original DEX on an explicit API23
+goldfish/ranchu emulator. Only literal `/dev/ptmx`, a software PTY, can be opened.
+The actual test verified native open with baud argument 4800, a character file
+descriptor, unsupported-baud rejection and probe-owned descriptor cleanup.
+It sends zero payload bytes and does not measure a physical baud rate.
+
+The supplied JNI `close()` looks for field `mFd`; the supplied DEX instead has
+descriptor field `a`. Executing that original close reproduced a CheckJNI
+NoSuchFieldError/native abort on API23 x86. This is a recorded OEM failure,
+**not** a successful native-close or physical-device test. The ordinary probe
+explicitly reports native close as unverified and uses libcore for cleanup.
+The independent 57,998-record pure ART comparison passed again with the same
+updated probe APK. See [native evidence and reproduction](devices/mcc/research/native-serial.md).
