@@ -80,9 +80,9 @@ class DesktopApp:
             combo=ttk.Combobox(control,textvariable=variable,values=values,width=width,state="readonly")
             combo.pack(side="left",padx=(0,12))
             if title=="Heat °C":self.heat_combo=combo
-        self.start_button=ttk.Button(control,text="START / Apply",command=lambda:self.action(self.start_motor))
+        self.start_button=ttk.Button(control,text="START / Apply",command=lambda:self.action(self.start_motor,sends=True))
         self.start_button.pack(side="left",padx=(0,6))
-        ttk.Button(control,text="STOP",style="Stop.TButton",command=lambda:self.action(self.stop_motor)).pack(side="left",padx=6)
+        ttk.Button(control,text="STOP",style="Stop.TButton",command=lambda:self.action(self.stop_motor,sends=True)).pack(side="left",padx=6)
         self.pause_button=ttk.Button(control,text="Pause",command=self.toggle_clock);self.pause_button.pack(side="left",padx=6)
         ttk.Entry(control,textvariable=self.step_seconds,width=6).pack(side="left",padx=(8,4))
         ttk.Button(control,text="Step seconds",command=lambda:self.action(lambda:self.twin.advance(float(self.step_seconds.get())))).pack(side="left")
@@ -141,7 +141,7 @@ class DesktopApp:
         for index,key in enumerate(("lid_open","ntc_present"),3):
             self.ttk.Checkbutton(f,text=key.replace("_"," "),variable=self.sensor_vars[key]).grid(row=index,column=0,columnspan=2,sticky="w",pady=8)
         self.ttk.Button(f,text="Inject sensor state",command=lambda:self.action(self.inject_sensors)).grid(row=5,column=0,pady=14,sticky="w")
-        self.tare_button=self.ttk.Button(f,text="Tare",command=lambda:self.action(self.twin.tare));self.tare_button.grid(row=5,column=1,padx=12)
+        self.tare_button=self.ttk.Button(f,text="Tare",command=lambda:self.action(self.tare,sends=True));self.tare_button.grid(row=5,column=1,padx=12)
         self.ttk.Label(f,text="Sensor and fault controls remain available while Android owns motor commands.",style="Muted.TLabel").grid(row=6,column=0,columnspan=3,pady=15,sticky="w")
 
     def _faults(self):
@@ -174,7 +174,7 @@ class DesktopApp:
         self.hex_var=self.tk.StringVar()
         row=self.ttk.Frame(f);row.pack(fill="x",pady=8)
         self.ttk.Entry(row,textvariable=self.hex_var).pack(side="left",fill="x",expand=True,padx=(0,8))
-        self.hex_button=self.ttk.Button(row,text="Send HEX",command=lambda:self.action(lambda:self.twin.feed(bytes.fromhex(self.hex_var.get()))));self.hex_button.pack(side="right")
+        self.hex_button=self.ttk.Button(row,text="Send HEX",command=lambda:self.action(lambda:self.twin.feed(bytes.fromhex(self.hex_var.get())),sends=True));self.hex_button.pack(side="right")
         self.console=self._text(f)
 
     def _scenarios(self):
@@ -232,17 +232,19 @@ class DesktopApp:
             first,last=widget.yview()
             if widget.winfo_ismapped():widget._follow=last>=.999  # hidden tabs keep their mode
             follow=getattr(widget,"_follow",True)
+            if not follow and getattr(widget,"_rendered",None) is not None:return  # paused while reading
         widget.delete("1.0","end");widget.insert("1.0",text)
         if preserve_view:
             widget._rendered=text
             if follow:widget.see("end")
-            else:widget.yview_moveto(first)
 
     def _load_profile_controls(self):
         temperatures = ([0,37,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130]
                         if self.twin.model==DeviceModel.MCC else [0,37,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130])
         self.heat_combo.configure(values=temperatures);self.temperature.set("0")
-        for key,value in (("weight","0"),("temperature","25"),("firmware","1"),("lid_open",False),("ntc_present",True)):
+        state=self.twin.get_state()
+        for key,value in (("weight",str(round(state.weight))),("temperature",str(round(state.temperature))),
+                          ("firmware",str(state.firmware)),("lid_open",state.lid_open),("ntc_present",state.ntc_present)):
             self.sensor_vars[key].set(value)
         self._sensor_baseline={key:var.get() for key,var in self.sensor_vars.items()}
         self._truncation_reported=False
@@ -252,7 +254,7 @@ class DesktopApp:
         self._replace_text(self.info,json.dumps(self.twin.capabilities,indent=2))
         self._console_generation=None
 
-    def action(self, callback):
+    def action(self, callback, *, sends=False):
         twin,stream=self.twin,self.twin.stream
         generation,discarded,refused,accepted=twin.generation,stream.rejected,twin.rejected_commands,twin.command_count
         try:
@@ -262,9 +264,13 @@ class DesktopApp:
             if same and twin.rejected_commands>refused:
                 reason=next((e.get("reason","") for e in reversed(twin.timeline) if e.get("event")=="rejected_command"),"")
                 self.message.set("Command refused by the model: "+reason)
+            elif same and sends and twin._faults.get("disconnected") and twin.command_count==accepted:
+                self.message.set("Simulated link is disconnected: input was not delivered to the model.")
             elif same and stream.rejected>discarded:
                 prefix="Some input bytes were discarded" if twin.command_count>accepted else "Input not executed"
                 self.message.set(f"{prefix}: {stream.issues[-1]['reason']}. See Timeline.")
+            elif same and twin.buffered_bytes and twin.command_count==accepted:
+                self.message.set(f"Partial frame buffered ({twin.buffered_bytes} bytes); waiting for the rest.")
             else:
                 self.message.set("Applied to the selected virtual model.")
             return result
@@ -279,6 +285,12 @@ class DesktopApp:
     def stop_motor(self):
         if self.connection:self.connection.disconnect("desktop STOP")
         return self.twin.stop_motor()
+
+    def tare(self):
+        result=self.twin.tare()
+        # The displayed weight is now zero: make a new weight entry count as an edit.
+        self.sensor_vars["weight"].set("0");self._sensor_baseline["weight"]="0"
+        return result
 
     def inject_sensors(self):
         # Inject only the fields edited since the last injection, so toggling the

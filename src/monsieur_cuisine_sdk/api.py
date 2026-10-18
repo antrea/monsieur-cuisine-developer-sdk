@@ -118,6 +118,7 @@ class DigitalTwin:
         self.command_count = 0
         self.rejected_commands = 0
         self.record_enabled = record
+        self.record_requested = record
         self.timeline = deque(maxlen=1000)
         self.frames = deque(maxlen=400)
         self.history = deque(maxlen=600)
@@ -391,7 +392,7 @@ class DigitalTwin:
 
     def switch_model(self, model: DeviceModel | str, *, parameters=None):
         self._check_thread()
-        if self.recording_full:
+        if self.recording_full or self.recording.get("truncated"):
             return self.new_session(model, parameters=parameters)
         selected = DeviceModel(model)
         candidate = _profile(selected, self.seed, parameters)
@@ -427,9 +428,9 @@ class DigitalTwin:
         old_recording, generation = self.recording, self.generation + 1
         observers, hooks = self._observers, self._switch_observers
         seed, actions, pending = self.seed, self.max_actions, self.max_pending_bytes
-        policy = self.on_recording_full
-        self.__init__(selected, seed=seed, parameters=parameters, max_actions=actions, max_pending_bytes=pending,
-                      on_recording_full=policy)
+        policy, record = self.on_recording_full, self.record_requested
+        self.__init__(selected, seed=seed, parameters=parameters, record=record, max_actions=actions,
+                      max_pending_bytes=pending, on_recording_full=policy)
         self.generation = generation
         self.recording["initial_generation"] = generation
         self._observers, self._switch_observers = observers, hooks
@@ -449,7 +450,7 @@ def replay(recording: dict | str | Path, *, cancelled=None) -> DigitalTwin:
     """
     try:
         return _replay(recording, cancelled=cancelled)
-    except (KeyError, TypeError) as exc:
+    except (KeyError, TypeError, AttributeError, RecursionError) as exc:
         raise ValueError(f"invalid recording: {type(exc).__name__}: {exc}") from exc
 
 

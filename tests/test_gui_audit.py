@@ -53,14 +53,47 @@ class DesktopUsabilityRegressions(NativeGuiTestCase):
         self.assertGreaterEqual(console.yview()[1], .999, 'live view should follow the newest frame')
         console.yview_moveto(0.2); self.root.update()
         position = console.yview()[0]
-        for _ in range(5):
+        top_line = console.get('@0,0 linestart', '@0,0 lineend')
+        for _ in range(60):  # the 400-frame ring is full: old lines are dropped
             twin.advance(.05); twin.sample()
-        self.app.refresh(); self.root.update()
+            self.app.refresh(); self.root.update()
         self.assertAlmostEqual(console.yview()[0], position, delta=.02)
+        self.assertEqual(console.get('@0,0 linestart', '@0,0 lineend'), top_line,
+                         'text under a reader scrolled away from the tail must not move')
+        console.yview_moveto(1.0); self.root.update()
+        twin.advance(.05); twin.sample(); self.app.refresh(); self.root.update()
+        self.assertGreaterEqual(console.yview()[1], .999, 'returning to the bottom resumes following')
         console.tag_add('sel', '1.0', '1.10')
         twin.advance(.05); twin.sample()
         self.app.refresh()
         self.assertTrue(console.tag_ranges('sel'), 'refresh must not clear the user selection')
+
+    def test_partial_frame_and_disconnected_link_are_not_reported_as_applied(self):
+        stop = self.app.twin.profile.encode_stop()
+        self.app.action(lambda: self.app.twin.feed(stop[:7]), sends=True)
+        self.assertIn('Partial frame', self.app.message.get())
+        self.app.action(lambda: self.app.twin.feed(stop[7:]), sends=True)
+        self.assertIn('Applied', self.app.message.get())
+        self.app.twin.set_faults(disconnected=True)
+        self.app.action(self.app.stop_motor, sends=True)
+        self.assertIn('disconnected', self.app.message.get())
+        self.app.sensor_vars['lid_open'].set(True)
+        self.app.action(self.app.inject_sensors)
+        self.assertIn('Applied', self.app.message.get())  # sensors work with the link down
+
+    def test_sensor_entries_start_from_the_model_and_tare_allows_reinjection(self):
+        twin = self.app.twin
+        self.assertEqual(self.app.sensor_vars['temperature'].get(), str(round(twin.get_state().temperature)))
+        self.app.sensor_vars['temperature'].set('25')
+        self.app.action(self.app.inject_sensors)
+        self.assertEqual(twin.get_state().temperature, 25)
+        self.app.sensor_vars['weight'].set('500')
+        self.app.action(self.app.inject_sensors)
+        self.app.action(self.app.tare, sends=True)
+        self.assertEqual(twin.get_state().weight, 0)
+        self.app.sensor_vars['weight'].set('500')
+        self.app.action(self.app.inject_sensors)
+        self.assertEqual(twin.get_state().weight, 500)
 
     def test_sensor_injection_only_sends_edited_fields(self):
         twin = self.app.twin

@@ -48,6 +48,7 @@ class MCSProfile:
                 'stop': 'remove targets and timer; preserve coast and cooling',
                 'interlocks': 'configured lid/NTC/error blocks demand; targets retained and timer paused',
                 'turbo': 'artificial raw level 20 fallback',
+                'timer': 'a command re-sending the reported countdown (ceil of remaining) keeps the running deadline; any other value starts a new one',
                 'temperature_saturation_celsius': [-100, 1000],
                 'weight_saturation': 'signed 32-bit grams; raw saturation flags exposed',
             },

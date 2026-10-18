@@ -50,7 +50,7 @@ class SetTemperaturePreservesTheRunningCommand(unittest.TestCase):
         self.assertEqual(state.target_temperature, 80)
         self.assertEqual(state.requested_speed, 2)
         self.assertEqual(state.requested_direction, 'ccw')
-        self.assertEqual(state.raw['remaining'], 110)
+        self.assertAlmostEqual(state.raw['remaining'], 110, places=6)  # deadline kept, not rewritten
         self.assertTrue(state.raw['timer_active'])
         twin.advance(111)
         self.assertEqual(twin.get_state().requested_speed, 0)
@@ -87,6 +87,53 @@ class SetTemperaturePreservesTheRunningCommand(unittest.TestCase):
                 with self.subTest(model=model, value=value), self.assertRaises(ValueError):
                     twin.set_temperature(value)
             self.assertEqual(twin.get_state().target_temperature, 60)
+
+
+class RedTeamTwinRegressions(unittest.TestCase):
+    def test_repeated_set_temperature_cannot_extend_the_mcs_countdown(self):
+        # R1: re-encoding ceil(remaining) every call used to restart the deadline.
+        twin = DigitalTwin('mcs', record=False)
+        twin.start_motor(2, 'cw', 60, 10)
+        elapsed = 0.0
+        while twin.get_state().requested_speed and elapsed < 30:
+            twin.set_temperature(80 if int(elapsed * 2) % 2 else 70)
+            twin.advance(0.5); elapsed += 0.5
+        self.assertAlmostEqual(elapsed, 10, delta=0.6)
+        self.assertEqual(twin.get_state().requested_speed, 0)
+
+    def test_new_explicit_countdown_still_replaces_the_running_one(self):
+        twin = DigitalTwin('mcs', record=False)
+        twin.start_motor(2, 'cw', 60, 30)
+        twin.advance(5)
+        twin.start_motor(2, 'cw', 60, 60)
+        self.assertEqual(twin.get_state().raw['remaining'], 60)
+
+    def test_truncated_recording_starts_fresh_on_model_switch(self):
+        # R9: the old model's truncated trace must not stay attached to the new model.
+        twin = DigitalTwin('mcc', max_actions=6, on_recording_full='continue')
+        for _ in range(10):
+            twin.advance(.05)
+        self.assertTrue(twin.recording['truncated'])
+        twin.switch_model('mcs')
+        self.assertEqual(twin.recording['model'], 'mcs')
+        self.assertNotIn('truncated', twin.recording)
+        self.assertTrue(twin.record_enabled)
+
+    def test_new_session_keeps_record_false(self):
+        twin = DigitalTwin('mcc', record=False)
+        twin.new_session('mcs')
+        self.assertFalse(twin.record_enabled)
+
+    def test_more_malformed_recordings_raise_value_error(self):
+        import json, os, tempfile
+        good = DigitalTwin('mcc').recording
+        with self.assertRaises(ValueError):
+            replay({**good, 'parameters': []})
+        path = os.path.join(tempfile.mkdtemp(), 'deep.json')
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write('{"schema": "monsieur-cuisine-recording-v1", "x": ' + '[' * 100000 + ']' * 100000 + '}')
+        with self.assertRaises(ValueError):
+            replay(path)
 
 
 class InteractiveRecordingPolicy(unittest.TestCase):
