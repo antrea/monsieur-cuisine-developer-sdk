@@ -70,13 +70,13 @@ class SetTemperaturePreservesTheRunningCommand(unittest.TestCase):
         self.assertEqual((controller['extended_state'], controller['requested_speed_level']), (5, 3))
         self.assertEqual(twin.get_state().target_temperature, 60)
 
-    def test_idle_set_temperature_heats_at_speed_zero_for_both(self):
+    def test_idle_set_temperature_uses_each_profiles_host_policy(self):
         for model in ('mcc', 'mcs'):
             with self.subTest(model=model):
                 twin = DigitalTwin(model, record=False)
                 twin.set_temperature(60)
                 state = twin.get_state()
-                self.assertEqual((state.requested_speed, state.target_temperature), (0, 60))
+                self.assertEqual((state.requested_speed, state.target_temperature), (1 if model == 'mcc' else 0, 60))
                 self.assertTrue(state.heater_on or model == 'mcs')
 
     def test_invalid_temperature_rejected_before_mutation(self):

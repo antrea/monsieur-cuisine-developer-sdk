@@ -1,5 +1,12 @@
 # Compatibility and Verification Scope
 
+SDK 2.0 development (`2.0.0.dev0`) was tested locally on Windows 11 with CPython
+3.11.17–3.14.8 (all four minors), real Tk, Kotlin/JVM and offline Android builds.
+There is no hosted CI run for this unpushed branch. The demo still requires
+Android API 26 or newer; the backup's Android 6/API 23 does not meet that demo
+requirement. No appliance installation is supported or claimed. The table below
+retains the published v0.1.0 verification scope.
+
 The SDK targets Python **3.11+** on Windows, Linux and macOS using one Python/Tk codebase. This page separates completed local/hosted evidence and device-profile compatibility. Later interpreter versions require their own verification.
 
 | Environment | Executed verification |

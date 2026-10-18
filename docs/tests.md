@@ -1,5 +1,26 @@
 # Validation and reproducibility
 
+## SDK 2.0 local development verification (2026-10-18)
+
+The `2.0.0.dev0` local branch passed **183 Python tests on each of CPython
+3.11.17, 3.12.15, 3.13.16 and 3.14.8 on Windows 11**, including real Tk widgets,
+the Backup tab and loopback integration. **28 Kotlin/JVM tests** passed offline;
+both packaged JVM clients also passed against the actual native desktop/model.
+No Android Activity/emulator or physical appliance was exercised in this phase.
+
+The complete 57,998-record private OEM differential was re-compared with zero
+mismatches; the 9,642-record public subset runs in the suite. The updated ext4
+reader still matched an independent 7-Zip extraction for 1,421 regular files,
+155 symlinks and 277 directories. The actual backup was re-hashed/reconstructed
+successfully and inventory produced 21 partitions and 68 system app folders.
+No personal userdata entries or APK internals were inspected.
+
+The published v0.1.0 hosted results below are historical baseline evidence;
+they are **not hosted CI results for this unpushed development branch**.
+USB write/installation and hardware restoration are not claimed by fake-ADB or
+offline rollback tests. See [USB](usb-toolkit.md), [backup](backup.md) and
+[host evidence levels](mcc-oem-policy.md).
+
 After an editable install, run from the repository root:
 
 ```sh

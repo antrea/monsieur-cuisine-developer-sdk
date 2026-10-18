@@ -1,5 +1,23 @@
 # Release audit — unified SDK 0.1.0
 
+## SDK 2.0 local development checkpoint — 2026-10-18
+
+This branch is `2.0.0.dev0`, not a published SDK 2.0 release. Current verification:
+183 Python tests passed on each of Python 3.11–3.14/Windows; 28 Kotlin/JVM tests
+passed; both JVM clients exercised the same native Tk/model instance. Backup
+integrity/reconstruction and privacy-minimized inventory were exercised on the
+owner's local files. The full 57,998-vector software comparison and independent
+1,421-file ext4 comparison passed. Public fixture data is plain JSONL under the
+existing text allowlist; no compressed-binary exception was added.
+
+The read-only Backup tab/CLI and external format adapter are implemented. USB
+diagnostics have fake-ADB tests; application/launcher rollback is an offline
+transaction model, with no device writer. Firmware restoration, hardware
+interlocks and the MCU implementation remain unverified. Current details are in
+[architecture](ARCHITECTURE.md), [tests](docs/tests.md), [backup](docs/backup.md)
+and [MCC host policy](docs/mcc-oem-policy.md). The v0.1.0 record below is retained
+as historical provenance; no remote operation was performed for this branch.
+
 Audit date: 2026-10-16. **Pre-publication technical verification snapshot.**
 This initial unified product has its own version history, separate from the two
 predecessor 0.2.0 toolkits. Results below describe the current unified source.

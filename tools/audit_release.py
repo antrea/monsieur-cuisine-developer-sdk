@@ -34,7 +34,7 @@ LOCAL_PACKAGES = {'monsieur_cuisine_sdk', 'mcc_protocol', 'mcs_protocol', 'mcc_p
 SOURCE_DIRECTORIES = {'.github', 'android', 'assets', 'docs', 'examples', 'fixtures',
                       'specs', 'src', 'tests', 'tools'}
 SOURCE_ROOT_FILES = {'.gitignore', '.gitattributes', '.editorconfig', 'pyproject.toml',
-                     'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
+                     'README.md', 'ARCHITECTURE.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
                      'CONTRIBUTING.md', 'SECURITY.md', 'RELEASE_NOTES.md', 'RELEASE_AUDIT.md'}
 SOURCE_EXTENSIONLESS = {'.github/CODEOWNERS', 'android/gradlew',
                         'android/gradle/wrapper/LICENSE', 'android/gradle/wrapper/NOTICE'}

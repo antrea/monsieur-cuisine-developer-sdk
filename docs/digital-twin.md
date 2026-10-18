@@ -24,6 +24,7 @@ MCC shows modeled RPM. The same UI with MCS shows raw motor levels and explicitl
 
 | Tab | Use |
 |---|---|
+| Backup | Read-only local session verification/inventory, progress/cancellation and actual JSON report export; no hardware access |
 | Dashboard | Common observations, synthetic blade animation and target/observed speed chart |
 | Motor / Temperature | Inspect selected-profile speed and thermal behavior; use the common controls above |
 | Scale & Sensors | Inject weight, actual temperature, firmware number, lid and NTC; use Tare |

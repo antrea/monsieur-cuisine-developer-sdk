@@ -4,6 +4,14 @@
 
 **One SDK. Two devices. One Digital Twin.**
 
+> **SDK 2.0 local development branch (`2.0.0.dev0`).** Adds read-only backup
+> verification/inventory, a native Backup tab, build-292 host policy and optional
+> host latch/timing simulation. Existing v0.1.0 screenshots and hosted results
+> below describe that published baseline; this local branch has its own test
+> evidence and has not been pushed or released. Start with [SDK 2.0 architecture](ARCHITECTURE.md),
+> [Backup Manager](docs/backup.md), [MCC OEM policy](docs/mcc-oem-policy.md),
+> [USB diagnostics/sandbox](docs/usb-toolkit.md) and [recovery limits](docs/recovery.md).
+
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 
 Use it to explore the original protocol bytes, build an application, test motor-control logic, inject sensor faults and reproduce a debugging session. The virtual PowerBoards maintain state and generate dynamic binary telemetry. Their physics are synthetic; the project does not certify software for a real appliance.

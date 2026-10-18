@@ -14,7 +14,7 @@ internal interface FrameParser {
 }
 internal data class RequestedOperation(
     val running: Boolean = false, val speed: Int = 0,
-    val direction: MotorDirection = MotorDirection.COUNTER_CLOCKWISE,
+    val direction: MotorDirection = MotorDirection.CLOCKWISE,
     val temperatureC: Int = 0, val durationSeconds: Int = 0
 )
 internal object WireProfiles {

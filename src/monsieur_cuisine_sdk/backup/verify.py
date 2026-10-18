@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+import re
 
 from ..firmware import bootimg, ext4, gpt, mtk
 from .image import CompositeImage, RawImage, Segment, is_all_zero, sha256_file, sha256_image
@@ -45,7 +46,7 @@ class VerifyReport:
 
 
 def _hash_manifest(session: BackupSession, report: VerifyReport, manifest: dict[str, str], base: Path, label: str,
-                   progress):
+                   progress, cancelled):
     if not manifest:
         report.add(f"{label}.present", "SKIP" if label == "extracted" else "FAIL", f"{label} manifest missing")
         return {}
@@ -60,7 +61,8 @@ def _hash_manifest(session: BackupSession, report: VerifyReport, manifest: dict[
             continue
         if progress:
             progress(f"SHA-256 {label}/{relative}")
-        actual = sha256_file(target)
+        actual = sha256_file(target, cancelled=cancelled,
+                             progress=(lambda: progress(f"Hashing {label} image bytes")) if progress else None)
         hashes[relative] = actual
         if actual != expected:
             changed.append(relative)
@@ -101,12 +103,14 @@ def _identify(name: str, view: RawImage) -> dict:
     head = view.read_at(0, 4096)
     info: dict = {}
     if head[:8] == bootimg.BOOT_MAGIC:
+        if view.size > 128 * 1024 * 1024:
+            raise ValueError("Android boot identification exceeds the bounded read size")
         raw = view.read_at(0, view.size)
         image = bootimg.parse_boot_image(raw)
         kernel_name, _kernel = bootimg.unwrap_mtk(bootimg.section(raw, image, "kernel"))
         ramdisk_name, ramdisk = bootimg.unwrap_mtk(bootimg.section(raw, image, "ramdisk"))
         info = {"type": "android-boot", "header_version": image.header_version, "page_size": image.page_size,
-                "kernel_size": image.kernel_size, "ramdisk_size": image.ramdisk_size, "cmdline": image.cmdline,
+                "kernel_size": image.kernel_size, "ramdisk_size": image.ramdisk_size,
                 "mtk_kernel_header": kernel_name, "mtk_ramdisk_header": ramdisk_name}
         try:
             entries = bootimg.list_cpio(bootimg.decompress_ramdisk(ramdisk))
@@ -119,7 +123,7 @@ def _identify(name: str, view: RawImage) -> dict:
         sb_raw = view.read_at(ext4.SUPERBLOCK_OFFSET, 1024)
         try:
             sb = ext4.parse_superblock(sb_raw)
-            info = {"type": "ext4", "volume_name": sb.volume_name, "block_size": sb.block_size,
+            info = {"type": "ext4", "block_size": sb.block_size,
                     "blocks": sb.blocks_count, "free_blocks": sb.free_blocks, "inodes": sb.inodes_count,
                     "free_inodes": sb.free_inodes, "clean": sb.clean, "mount_count": sb.mount_count,
                     "used_bytes": (sb.blocks_count - sb.free_blocks) * sb.block_size}
@@ -134,23 +138,25 @@ def _identify(name: str, view: RawImage) -> dict:
 
 
 def verify_session(folder, *, scatter: str | None = None, reconstruct: bool = True, identify: bool = True,
-                   progress=None) -> VerifyReport:
+                   progress=None, cancelled=lambda: False) -> VerifyReport:
     session = BackupSession.open(folder)
-    report = VerifyReport(str(session.root))
+    report = VerifyReport("local backup session")
     for problem in session.problems:
         report.add("session.metadata", "WARN", problem)
 
     # 1. Integrity: every file against its recorded SHA-256.
-    hashes = _hash_manifest(session, report, session.manifest, session.root, "manifest", progress)
+    hashes = _hash_manifest(session, report, session.manifest, session.root, "manifest", progress, cancelled)
     extracted_hashes = _hash_manifest(session, report, session.extracted_manifest, session.root / EXTRACTED,
-                                      "extracted", progress)
+                                      "extracted", progress, cancelled)
 
     # 2. The appliance only received read commands (as logged by the tool).
     if session.commands:
         bad = session.non_read_commands()
         report.add("session.read_only", "FAIL" if bad else "PASS",
                    f"{len(session.commands)} logged commands, all flash reads" if not bad
-                   else f"non-read commands logged: {bad}", commands=session.commands)
+                   else "non-read commands found in the local log",
+                   command_kinds=sorted({c.split()[0] if c.split()[0] in {"printgpt", "r", "rf", "rl", "rs", "ro"}
+                                         else "unknown" for c in session.commands}))
     else:
         report.add("session.read_only", "SKIP", "no command log in the session")
 
@@ -168,11 +174,14 @@ def verify_session(folder, *, scatter: str | None = None, reconstruct: bool = Tr
         report.add("gpt.primary", "FAIL", f"primary GPT unreadable: {error}")
         return report
     h = table.header
+    if any(not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", p.name) for p in table.partitions):
+        report.add("gpt.names", "FAIL", "invalid partition name; no partition files opened")
+        return report
     report.add("gpt.primary", "FAIL" if table.problems else "PASS",
                f"primary GPT: {len(table.partitions)} partitions, header and entry CRC32 "
                + ("valid" if h.header_crc_ok and table.entries_crc_ok else "INVALID")
                + (f"; problems: {table.problems}" if table.problems else ""),
-               disk_guid=h.disk_guid, backup_lba=h.backup_lba, first_usable=h.first_usable_lba,
+               backup_lba=h.backup_lba, first_usable=h.first_usable_lba,
                last_usable=h.last_usable_lba)
     disk_size = (h.backup_lba + 1) * SECTOR
     for p in sorted(table.partitions, key=lambda p: p.first_lba):
@@ -182,6 +191,9 @@ def verify_session(folder, *, scatter: str | None = None, reconstruct: bool = Tr
     for name in ("gpt.bin", "gpt_backup.bin"):
         copy = session.root / DIRECT / name
         if copy.is_file():
+            if copy.stat().st_size > 1024 * 1024:
+                report.add(f"gpt.copy.{name}", "FAIL", "GPT copy exceeds bounded size")
+                continue
             data = copy.read_bytes()
             same = data == primary_view.read_at(0, len(data))
             report.add(f"gpt.copy.{name}", "PASS" if same else "WARN",
@@ -229,7 +241,7 @@ def verify_session(folder, *, scatter: str | None = None, reconstruct: bool = Tr
         image = compose_user_area(session, table, primary_view.read_at(SECTOR, SECTOR))
         covered = image.coverage()
         if recorded:
-            digest = sha256_image(image, progress=(lambda done, total: progress(f"reconstruct {done}/{total}"))
+            digest = sha256_image(image, cancelled=cancelled, progress=(lambda done, total: progress(f"reconstruct {done}/{total}"))
                                   if progress else None)
             same = digest == recorded
             report.add("full_image.reconstruction", "PASS" if same else "FAIL",
@@ -250,7 +262,7 @@ def verify_session(folder, *, scatter: str | None = None, reconstruct: bool = Tr
                    f"{name} present ({path.stat().st_size:,} bytes)" if path.is_file() else f"{name} missing")
     boot1 = session.root / BOOT_AREAS[0]
     if boot1.is_file():
-        info = mtk.parse_preloader(boot1.read_bytes()[:0x40000])
+        info = mtk.parse_preloader(RawImage(boot1).read_at(0, 0x40000))
         good = info.emmc_boot and info.brlyt_offset is not None
         report.add("boot_area.preloader", "PASS" if good else "WARN",
                    "boot1 starts with EMMC_BOOT and holds a BRLYT layout record" if good

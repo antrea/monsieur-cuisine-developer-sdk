@@ -1,6 +1,9 @@
 # Documentation
 
-The current product is Monsieur Cuisine Developer SDK 0.1.0. Start with the English documents below; archived device research retains its original build scope and clearly marked historical commands.
+SDK 2.0 development: [Architecture](../ARCHITECTURE.md), [Backup Manager](backup.md),
+[MCC OEM policy](mcc-oem-policy.md), [USB toolkit](usb-toolkit.md), [Recovery scope](recovery.md).
+
+This local branch is SDK 2.0 development (`2.0.0.dev0`); the public baseline is 0.1.0. Start with the English documents below; archived device research retains its original build scope and clearly marked historical commands.
 
 | Task | Current guide |
 |---|---|

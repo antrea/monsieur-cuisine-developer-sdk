@@ -286,10 +286,18 @@ class DigitalTwin:
         self._point(); self._record("feed", {"hex": raw.hex()}, result)
         return result
 
-    def start_motor(self, speed: int = 2, direction: str = "ccw", temperature: int = 0,
-                    duration: int = 0, *, owner=None):
+    def start_motor(self, speed: int = 2, direction: str = "cw", temperature: int = 0,
+                    duration: int = 0, *, owner=None, hot_speed_confirmed=False):
         self._check_owner(owner)
-        raw = self.profile.encode_start(speed, direction, temperature, duration)
+        if type(hot_speed_confirmed) is not bool:
+            raise ValueError("hot_speed_confirmed must be bool")
+        if self.model == DeviceModel.MCC:
+            raw = self.profile.encode_start(speed, direction, temperature, duration,
+                                            hot_speed_confirmed=hot_speed_confirmed)
+        else:
+            if hot_speed_confirmed:
+                raise ValueError("MCC host confirmation is not an MCS policy")
+            raw = self.profile.encode_start(speed, direction, temperature, duration)
         return self.feed(raw, owner=owner)
 
     def stop_motor(self, *, owner=None):
@@ -310,6 +318,27 @@ class DigitalTwin:
         """
         self._check_owner(owner)
         return self.feed(self.profile.encode_temperature(celsius), owner=owner)
+
+    def set_recipe_temperature(self, celsius: int, *, owner=None):
+        """MCC build-292 recipe Celsius binning; no equivalent MCS claim."""
+        self._check_owner(owner)
+        if self.model != DeviceModel.MCC:
+            raise ValueError("recipe temperature binning is verified only for MCC build 292")
+        return self.feed(self.profile.encode_recipe_temperature(celsius), owner=owner)
+
+    def start_turbo(self, *, owner=None):
+        """Apply MCC host entry gates and emit canonical C6/10/CW/no-heat.
+
+        This sends one command. Call stop_motor on release; the separate host
+        timing policy is not a controller watchdog.
+        """
+        self._check_owner(owner)
+        if self.model != DeviceModel.MCC:
+            raise ValueError("this turbo API is specific to MCC build 292")
+        if self.profile.native.controller.requested_temperature_level >= 5:
+            raise ValueError("MCC manual turbo requires the previous target below level 5")
+        from .profiles.mcc.protocol.codec import Operation
+        return self.feed(self.profile.encode_start(10, "cw", 0, operation=Operation.TURBO), owner=owner)
 
     def tare(self, *, owner=None):
         self._check_owner(owner)

@@ -1,7 +1,7 @@
 """Host-side rules of the OEM MCC app (de.silpion.mc2 build 292), above the wire codec.
 
 These are what the original app enforces before it latches a command, read from
-its code and checked by executing its own bytecode (see
+its code. Pure conversions are checked against executed bytecode vectors (see
 ``fixtures/oem/mcc_292_vectors.jsonl``). The power-board firmware may
 enforce more or less: nothing here is a firmware fact or a certified interlock.
 
@@ -126,6 +126,10 @@ class HostPolicy:
               measured_temperature: int | None = None, lid_open: bool | None = None, error_code: int = 0,
               hot_speed_confirmed: bool = False, knead_rest: bool = False) -> PolicyDecision:
         """Decide what the app would latch for a start/resume request (``CookingManager.i()`` then ``a()``)."""
+        _require_int("speed", speed)
+        _require_int("temperature_level", temperature_level)
+        if not 0 <= speed <= 10 or not 0 <= temperature_level <= 19:
+            raise ValueError("speed/temperature level outside the codec range")
         operation, direction = Operation(operation), Direction(direction)
         adjustments, refusals, confirmations = [], [], []
         if operation in (Operation.STOP, Operation.SLEEP):
@@ -151,8 +155,12 @@ class HostPolicy:
                 adjustments.append(f"speed 0 -> {SPEED_DEFAULT} (app minimum)")
                 speed = SPEED_DEFAULT
         if (measured_temperature is not None and measured_temperature >= HOT_SPEED_TEMPERATURE
-                and speed >= HOT_SPEED_LEVEL and not hot_speed_confirmed):
-            confirmations.append(f"speed >= {HOT_SPEED_LEVEL} at >= {HOT_SPEED_TEMPERATURE} °C needs confirmation")
+                and speed >= HOT_SPEED_LEVEL):
+            if not hot_speed_confirmed:
+                confirmations.append(f"speed >= {HOT_SPEED_LEVEL} at >= {HOT_SPEED_TEMPERATURE} °C needs confirmation")
+            elif speed > HOT_SPEED_LEVEL:
+                adjustments.append("hot-speed confirmation selects level 4 in the app")
+                speed = HOT_SPEED_LEVEL
         return PolicyDecision(operation, speed, direction, temperature_level, tuple(adjustments), tuple(refusals),
                               tuple(confirmations))
 
@@ -169,5 +177,8 @@ class HostPolicy:
         if error_code:
             refusals.append(f"board error {error_code} active")
         if (speed, temperature_level) != (SPEED_MAX, 0):
-            adjustments.append("turbo is always sent as speed 10, clockwise, no heat")
+            if self.mode == "strict":
+                refusals.append("strict turbo requires speed 10 and no heat")
+            else:
+                adjustments.append("turbo is always sent as speed 10, clockwise, no heat")
         return PolicyDecision(*TURBO_COMMAND, tuple(adjustments), tuple(refusals))

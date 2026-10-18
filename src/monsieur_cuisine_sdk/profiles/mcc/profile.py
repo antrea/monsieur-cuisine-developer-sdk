@@ -12,6 +12,7 @@ from typing import Any
 from .protocol import codec as nativecodec
 from .protocol.codec import Direction, Operation, TEMPERATURE_LEVELS, TxFrame, decode_frame, encode_tx
 from .simulation.model import PhysicsConfig, PowerBoardModel
+from .oem_policy import HostPolicy, recipe_temperature_level
 
 
 _DIRECTIONS = {"cw": Direction.CLOCKWISE, "ccw": Direction.COUNTER_CLOCKWISE}
@@ -35,11 +36,12 @@ class MCCProfile:
             values = json.loads(json.dumps({} if parameters is None else parameters, allow_nan=False))
             if "speed_rpm" in values:
                 values["speed_rpm"] = tuple(values["speed_rpm"])
+            self.policy = HostPolicy(values.pop("host_policy", "oem"))
             config = PhysicsConfig(**values)
         except (TypeError, OverflowError) as exc:
             raise ValueError("invalid MCC physics parameters") from exc
         self.seed = seed
-        self.parameters = config.to_dict()
+        self.parameters = {**config.to_dict(), "host_policy": self.policy.mode}
         self.native = PowerBoardModel(config)
         self._remainder_ns = 0
         self._operation = Operation.STOP
@@ -51,6 +53,7 @@ class MCCProfile:
             "speed_unit": "rpm", "requested_speed_unit": "level", "speed_levels": list(range(11)),
             "temperature_unit": "celsius", "temperature_values": list(TEMPERATURE_LEVELS),
             "directions": ["cw", "ccw"], "duration_supported": False,
+            "host_policy": self.policy.mode, "calibration_supported": "synthetic only",
             "tare_supported": True, "query_supported": False, "rpm_available": True,
             "sensors": ["weight", "temperature", "lid_open", "ntc_present", "error_code", "firmware"],
             "evidence": "Static APK host serializer/getter observations; no physical capture or firmware specification",
@@ -61,7 +64,8 @@ class MCCProfile:
     def _trim_log(self) -> None:
         del self.native.log[:-10000]
 
-    def encode_start(self, speed: int, direction: str, temperature: int, duration: int = 0) -> bytes:
+    def encode_start(self, speed: int, direction: str, temperature: int, duration: int = 0, *,
+                     operation=Operation.STANDARD, hot_speed_confirmed=False) -> bytes:
         _integer("speed", speed, 0, 10)
         if not isinstance(direction, str) or direction not in _DIRECTIONS:
             raise ValueError("direction must be 'cw' or 'ccw'")
@@ -69,22 +73,37 @@ class MCCProfile:
             raise ValueError("MCC temperature must be an exact documented Celsius level")
         if type(duration) is not int or duration != 0:
             raise ValueError("MCC has no wire duration field; duration must be zero")
-        return encode_tx(Operation.STANDARD, speed=speed, direction=_DIRECTIONS[direction],
-                         temperature_level=TEMPERATURE_LEVELS.index(temperature))
+        return self._policy_command(operation, speed, _DIRECTIONS[direction],
+                                    TEMPERATURE_LEVELS.index(temperature), hot_speed_confirmed)
+
+    def _policy_command(self, operation, speed, direction, level, hot_speed_confirmed=False):
+        state = self.state()
+        decision = self.policy.start(operation, speed, direction, level,
+                                     measured_temperature=state["temperature"],
+                                     lid_open=state["lid_open"], error_code=state["error_code"],
+                                     hot_speed_confirmed=hot_speed_confirmed)
+        if decision.refusals or decision.confirmations:
+            raise ValueError("MCC host policy: " + "; ".join(decision.refusals + decision.confirmations))
+        return encode_tx(decision.operation, speed=decision.speed, direction=decision.direction,
+                         temperature_level=decision.temperature_level)
+
+    def encode_recipe_temperature(self, celsius: int) -> bytes:
+        """Apply the OEM recipe binning, then the high-level host policy."""
+        return self.encode_temperature(TEMPERATURE_LEVELS[recipe_temperature_level(celsius)])
 
     def encode_temperature(self, celsius: int) -> bytes:
         """Reissue the current operation, speed and direction with a new target.
 
-        A halted controller (STOP/SLEEP) heats through STANDARD at speed zero,
-        matching the previous common behavior; a running program keeps its
-        operation instead of being replaced by STANDARD.
+        A halted controller uses STANDARD with the OEM minimum speed one.
+        Heated/reverse speed limits apply; strict policy rejects adjustments.
+        Raw feed remains independent of host policy.
         """
         if type(celsius) is not int or celsius not in TEMPERATURE_LEVELS:
             raise ValueError("MCC temperature must be an exact documented Celsius level")
         operation = self._operation if self._operation not in (Operation.STOP, Operation.SLEEP) else Operation.STANDARD
-        return encode_tx(operation, speed=self.native.controller.requested_speed_level,
-                         temperature_level=TEMPERATURE_LEVELS.index(celsius),
-                         direction=Direction(self.native.snapshot()["requested_direction"]))
+        return self._policy_command(operation, self.native.controller.requested_speed_level,
+                                    Direction(self.native.snapshot()["requested_direction"]),
+                                    TEMPERATURE_LEVELS.index(celsius))
 
     def encode_stop(self) -> bytes:
         direction = Direction(self.native.snapshot()["requested_direction"])
@@ -104,10 +123,10 @@ class MCCProfile:
         frame = decode_frame(raw)
         if not isinstance(frame, TxFrame):
             raise ValueError("MCC accepts TX command frames only")
-        if frame.warnings or frame.calibration or frame.direction is None:
+        if frame.warnings or frame.direction is None:
             # The native model refuses these without actuation; report the
             # refusal instead of counting the frame as an accepted command.
-            reason = "; ".join(frame.warnings) or "calibration command is not simulated"
+            reason = "; ".join(frame.warnings) or "unknown direction"
             raise ValueError(f"MCC command rejected without actuation: {reason}")
         result = self.native.feed(frame.raw)
         self._operation = Operation(frame.operation)

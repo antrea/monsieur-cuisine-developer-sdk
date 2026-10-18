@@ -1,3 +1,10 @@
+> **SDK 2.0 correction:** see the [build-292 OEM host-policy evidence](../../../mcc-oem-policy.md).
+> Turbo starts after 100 ms, then ticks every 1 s (8 s warning, about 600 s limit);
+> release/lid opening/at least 60 C stops turbo. RX reads are every 500 ms.
+> Count-up stops at its speed limit; idle sleep uses 420 s plus a 30 s countdown.
+> Lid/errors are app policy, not proven firmware interlocks. Calibration progression
+> in the current twin is a configurable hypothesis, superseding legacy refusal.
+
 > **Historical MCC profile research.** Retained from the separate legacy toolkit. Protocol/build facts retain their stated evidence scope; API names, commands, dependency versions, screenshots and prior test counts below describe that earlier product. Use the [current unified documentation](../../../index.md) and [current evidence and validation](../../../evidence.md) for SDK 0.1.0.
 
 # Commands and software behavior

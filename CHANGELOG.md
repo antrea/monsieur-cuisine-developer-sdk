@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.0.dev0 — local development, not published
+
+- Read-only backup/session and bounded GPT/ext4/Android-boot/MTK image readers;
+  external MCC Backup archive integrity and format adapter without GPL code import.
+- Privacy-minimized partition/system-app/build inventory and userdata allocation
+  metadata; separate `mc-backup verify|inventory|report`, cancellable native Backup tab.
+- 9,642 plain-text OEM software-reference vectors from prior isolated build-292
+  execution; provenance and intentional out-of-range serializer difference documented.
+- MCC high-level OEM/strict host policy: heated/reverse caps, STANDARD minimum 1,
+  program-preserving temperature changes, explicit recipe conversion and turbo entry.
+- Python/Kotlin start defaults change to CW; Kotlin STANDARD commands enforce the
+  same minimum/caps with an optional strict mode. Explicit raw feeds remain unadapted.
+- Stable error names retained, with separate build-292 UI descriptions for board 5/6/7.
+- Synthetic, configurable scale-calibration responses/progression and 10 Hz latch
+  tolerance; optional virtual CookingHost for latch collapse, timers, pause, turbo and sleep.
+- Read-only allowlisted ADB diagnostics and explicitly offline application plans,
+  launcher transaction/rollback rehearsal. No physical installer, writer or restoration.
+- Development versions distinguish these local artifacts from the published 0.1.0.
+
+
 ## Unreleased — independent audit corrections
 
 - Framing: one stray or missing byte no longer blacks out later commands for good. An 0xAA immediately followed by a header byte (MCC terminator before the next `55 0F`, or a stray 0xAA before a real MCS header) is treated as noise, so STOP keeps working after line noise. Complete envelopes up to `max_frame` are still validated and discarded as one unit; only oversized declarations whose high length byte is 0x55/0xAA (≥ 21761 bytes, never documented) are no longer quarantined blindly. Other oversized declarations can still cost up to 64 KiB of input (design limit, see the audit roadmap).

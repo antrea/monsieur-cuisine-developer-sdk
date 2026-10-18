@@ -14,6 +14,7 @@ imported. Layout::
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
@@ -34,7 +35,7 @@ def safe_relative(text: str) -> PurePosixPath:
     clean = text.strip().replace("\\", "/")
     # Check the raw components: PurePosixPath would silently normalize "a//b" and "a/./b".
     raw_parts = clean.split("/")
-    if not clean or clean.startswith("/") or ":" in raw_parts[0] or any(p in ("", ".", "..") for p in raw_parts):
+    if not clean or clean.startswith("/") or any(":" in p or "\0" in p or p in ("", ".", "..") for p in raw_parts):
         raise ValueError(f"unsafe manifest path {text!r}")
     return PurePosixPath(clean)
 
@@ -71,6 +72,14 @@ class BackupSession:
         root = Path(folder).resolve()
         if not root.is_dir():
             raise ValueError(f"{root} is not a folder")
+        # Reject file/directory links before parsing any manifest or metadata.
+        for directory, directories, files in os.walk(root, followlinks=False):
+            for name in directories + files:
+                item = Path(directory) / name
+                if item.is_symlink() or (hasattr(item, 'is_junction') and item.is_junction()):
+                    raise ValueError("backup session contains a link or junction")
+            # Session metadata is shallow; never recursively inspect image files.
+            directories[:] = [d for d in directories if Path(directory) == root and d in (DIRECT, EXTRACTED)]
         problems = []
         manifest = read_manifest(root / MANIFEST) if (root / MANIFEST).is_file() else {}
         if not manifest:
@@ -80,11 +89,19 @@ class BackupSession:
         metadata = {}
         if (root / "session.json").is_file():
             try:
-                metadata = json.loads((root / "session.json").read_text(encoding="utf-8"))
+                path = root / "session.json"
+                if path.stat().st_size > MAX_MANIFEST_BYTES:
+                    raise ValueError("session metadata too large")
+                metadata = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(metadata, dict):
+                    raise ValueError("session metadata must be an object")
             except (ValueError, UnicodeDecodeError) as error:
-                problems.append(f"session.json unreadable: {error}")
+                metadata = {}
+                problems.append("session.json unreadable or invalid")
         commands = []
         if (root / "commands.txt").is_file():
+            if (root / "commands.txt").stat().st_size > MAX_MANIFEST_BYTES:
+                raise ValueError("command log too large")
             commands = [line.strip() for line in (root / "commands.txt").read_text(encoding="utf-8").splitlines()
                         if line.strip()]
         elif isinstance(metadata.get("commands"), list):
@@ -102,8 +119,10 @@ class BackupSession:
         return (self.root / FULL_IMAGE).is_file()
 
     def partition_file(self, name: str, *, prefer: str = EXTRACTED) -> Path | None:
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name) or prefer not in (DIRECT, EXTRACTED):
+            raise ValueError("invalid partition name or selection")
         for sub in (prefer, DIRECT if prefer == EXTRACTED else EXTRACTED):
-            candidate = self.root / sub / f"{name}.bin"
+            candidate = self.path(f"{sub}/{name}.bin")
             if candidate.is_file():
                 return candidate
         return None

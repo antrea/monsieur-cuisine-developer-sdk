@@ -48,9 +48,9 @@ Common speed is an integer UI level **0–10**. Direction is `"cw"` or `"ccw"`; 
 | Operation | Behavior / return |
 |---|---|
 | `DigitalTwin(model, seed=292, parameters=None, record=True, ...)` | Creates one inert, explicit-profile session; no GUI, socket or device is opened |
-| `start_motor(speed=2, direction='ccw', temperature=0, duration=0)` | Encodes a profile command and feeds it; returns ready RX byte frames |
+| `start_motor(speed=2, direction='cw', temperature=0, duration=0)` | Encodes a profile command and feeds it; returns ready RX byte frames |
 | `stop_motor()` | Sends the profile STOP; retains finite model inertia and any configured link-fault effect |
-| `set_temperature(celsius)` | Reissues the current command with an exact supported Celsius target: MCC keeps its operation (e.g. KNEAD), speed and direction; MCS keeps function, raw level, direction, turbo lock and the remaining countdown. Idle models heat at speed 0 |
+| `set_temperature(celsius)` | Reissues the current command with an exact supported Celsius target: MCC keeps its operation/direction and applies OEM speed caps/minimum; MCS keeps function, raw level, direction, turbo lock and the remaining countdown. Idle MCC uses speed 1; idle MCS keeps speed 0 |
 | `tare()` | Uses the profile's documented scale operation |
 | `set_sensors(**values)` | Validates a complete normalized update, then injects it; returns state |
 | `set_faults(delay_seconds=0, drop_next=0, corrupt_next=0, disconnected=False)` | Replaces common response/link fault settings |
@@ -67,6 +67,22 @@ Common speed is an integer UI level **0–10**. Direction is `"cw"` or `"ccw"`; 
 `parameters` is a model-specific JSON object. MCC parameters configure illustrative RPM/rates/ambient temperature; MCS parameters configure its independent raw-level and thermal model. Obtain defaults from a profile or the recording's `parameters`; do not apply one device's configuration keys to the other. Each action can advance at most 3600 seconds; a session has a 24-hour virtual-time budget.
 
 MCS additionally bounds completed fixed-grid physics work to one million ticks per session, so its work limit can be reached before the 24-hour clock budget. Create a new session for further independent experiments. `set_faults()` and `save()` return `None`; state-changing operations returning state or ready bytes are listed above. `disarm()` performs cleanup and returns `None`.
+
+## MCC SDK 2.0 host policy and local-file tools
+
+MCC parameters accept `host_policy="oem"` (default) or `"strict"`.
+High-level requests adapt/reject heated and reverse speed limits, STANDARD
+minimum speed, lid/error entry guards and explicit hot-speed confirmation.
+`feed()` remains raw. `set_recipe_temperature(celsius)` exposes the OEM recipe
+binning; `start_turbo()` sends one gated canonical turbo command and requires
+explicit STOP on release. See [full policy, timing and calibration](mcc-oem-policy.md).
+The optional `CookingHost` uses virtual time above the twin, not a new controller.
+
+`backup.verify.verify_session`, `backup.inventory.inventory_session` and
+`backup.external.MCCBackupAdapter` provide local read-only backup operations.
+Use `mc-backup` or the native Backup tab; see [backup API/CLI](backup.md).
+The optional [USB toolkit](usb-toolkit.md) separates read-only ADB diagnostics
+from offline application transaction/rollback rehearsal. It has no device writer.
 
 ## State and units
 

@@ -24,7 +24,7 @@ class RawImage:
             raise ValueError("window offset outside the file")
         self.base = offset
         self.size = total - offset if length is None else length
-        if self.base + self.size > total:
+        if self.size < 0 or self.base + self.size > total:
             raise ValueError("window extends past the end of the file")
 
     def read_at(self, offset: int, length: int) -> bytes:
@@ -86,7 +86,10 @@ class CompositeImage:
             elif seg.source is not None:
                 with open(seg.source, "rb") as handle:
                     handle.seek(seg.source_offset + inner)
-                    out += handle.read(take)
+                    block = handle.read(take)
+                    if len(block) != take:
+                        raise ValueError("composite source changed or ended early")
+                    out += block
             else:
                 out += bytes(take)
             cursor += take
@@ -102,10 +105,14 @@ class CompositeImage:
         return covered
 
 
-def sha256_image(image, *, progress=None, chunk: int = CHUNK) -> str:
+def sha256_image(image, *, progress=None, chunk: int = CHUNK, cancelled=lambda: False) -> str:
     """SHA-256 of a whole RawImage/CompositeImage, streamed in ``chunk`` reads."""
     digest, offset = hashlib.sha256(), 0
+    if type(chunk) is not int or chunk <= 0:
+        raise ValueError("hash chunk size must be positive")
     while offset < image.size:
+        if cancelled():
+            raise ValueError("image hashing cancelled")
         block = image.read_at(offset, min(chunk, image.size - offset))
         if not block:
             raise ValueError(f"image ended early at {offset}")
@@ -116,11 +123,17 @@ def sha256_image(image, *, progress=None, chunk: int = CHUNK) -> str:
     return digest.hexdigest()
 
 
-def sha256_file(path, *, chunk: int = CHUNK) -> str:
+def sha256_file(path, *, chunk: int = CHUNK, cancelled=lambda: False, progress=None) -> str:
+    if type(chunk) is not int or chunk <= 0:
+        raise ValueError("hash chunk size must be positive")
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
         while block := handle.read(chunk):
+            if cancelled():
+                raise ValueError("file hashing cancelled")
             digest.update(block)
+            if progress:
+                progress()
     return digest.hexdigest()
 
 

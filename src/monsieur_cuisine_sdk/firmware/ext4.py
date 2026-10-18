@@ -130,6 +130,9 @@ class Ext4:
     def __init__(self, read_at: Callable[[int, int], bytes], *, size: int | None = None):
         self._read_at, self.image_size = read_at, size
         self.sb = parse_superblock(read_at(SUPERBLOCK_OFFSET, 1024))
+        supported = INCOMPAT_FILETYPE | 0x0004 | INCOMPAT_EXTENTS | INCOMPAT_64BIT | INCOMPAT_FLEX_BG
+        if self.sb.feature_incompat & ~supported:
+            raise ValueError("unsupported ext4 incompatible features")
         if size is not None and self.sb.blocks_count * self.sb.block_size > size:
             raise ValueError("filesystem larger than its container")
         if self.sb.group_count > 1 << 22:
@@ -146,7 +149,7 @@ class Ext4:
     # -- blocks and inodes ------------------------------------------------
     def read_blocks(self, block: int, count: int = 1) -> bytes:
         size = self.sb.block_size
-        if block < 0 or count < 0 or block + count > self.sb.blocks_count:
+        if block < 0 or count < 0 or block + count > self.sb.blocks_count or count * size > MAX_FILE_READ:
             raise ValueError(f"block range {block}+{count} outside the filesystem")
         data = self._read_at(block * size, count * size)
         if len(data) != count * size:
@@ -157,6 +160,8 @@ class Ext4:
         if not 1 <= number <= self.sb.inodes_count:
             raise ValueError(f"inode {number} out of range")
         group, index = divmod(number - 1, self.sb.inodes_per_group)
+        if group >= len(self._inode_tables):
+            raise ValueError("inode group outside the descriptor table")
         offset = self._inode_tables[group] * self.sb.block_size + index * self.sb.inode_size
         raw = self._read_at(offset, self.sb.inode_size)
         if len(raw) < 128:
@@ -214,9 +219,19 @@ class Ext4:
     def runs(self, inode: Inode) -> list[tuple[int, int, int, bool]]:
         if inode.flags & INLINE_DATA_FL:
             raise ValueError(f"inode {inode.number}: inline data is not supported")
-        if inode.flags & EXTENTS_FL:
-            return sorted(self._extent_runs(inode.block, MAX_EXTENT_DEPTH))
-        return list(self._map_runs(inode))
+        source = self._extent_runs(inode.block, MAX_EXTENT_DEPTH) if inode.flags & EXTENTS_FL else self._map_runs(inode)
+        result = []
+        for index, run in enumerate(source):
+            if index >= 1_000_000:
+                raise ValueError("inode block map exceeds bounded entry count")
+            result.append(run)
+        result.sort()
+        end = 0
+        for logical, physical, length, _initialized in result:
+            if logical < end or length <= 0 or physical + length > self.sb.blocks_count:
+                raise ValueError("overlapping or invalid inode extent")
+            end = logical + length
+        return result
 
     def iter_file(self, inode: Inode, *, limit: int = MAX_FILE_READ) -> Iterator[bytes]:
         """File content in order; holes and uninitialized extents read as zeros."""
@@ -270,13 +285,15 @@ class Ext4:
         filetype = bool(self.sb.feature_incompat & INCOMPAT_FILETYPE)
         while offset + 8 <= len(data):
             number, rec_len, name_len, file_type = struct.unpack_from("<IHBB", data, offset)
-            if rec_len < 8 or offset % size + rec_len > size:
+            if rec_len < 8 or offset % size + rec_len > size or offset + rec_len > len(data) or name_len > rec_len - 8:
                 raise ValueError(f"directory inode {inode.number}: bad record at {offset}")
             if not filetype:
                 name_len |= file_type << 8
                 file_type = 0
             if number and name_len:
                 name = data[offset + 8:offset + 8 + name_len].decode("utf-8", errors="surrogateescape")
+                if "/" in name or "\0" in name:
+                    raise ValueError("invalid directory entry name")
                 if name not in (".", ".."):
                     entries.append((name, number, FILE_TYPES.get(file_type, "unknown")))
                     if len(entries) > MAX_DIR_ENTRIES:

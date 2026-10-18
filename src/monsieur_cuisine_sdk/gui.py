@@ -72,7 +72,7 @@ class DesktopApp:
         self.owner_var = tk.StringVar(value="Owner: local")
         ttk.Label(selector, textvariable=self.owner_var).pack(side="right")
         control = ttk.Frame(shell); control.pack(fill="x", pady=(0, 10))
-        self.speed = tk.StringVar(value="2"); self.direction = tk.StringVar(value="ccw")
+        self.speed = tk.StringVar(value="2"); self.direction = tk.StringVar(value="cw")
         self.temperature = tk.StringVar(value="0"); self.step_seconds = tk.StringVar(value="0.1")
         for title, variable, values, width in (("Speed",self.speed,list(range(11)),5),
             ("Direction",self.direction,["ccw","cw"],7), ("Heat °C",self.temperature,[],6)):
@@ -90,12 +90,14 @@ class DesktopApp:
         self.message=tk.StringVar(value="Synthetic physics. No appliance connected. Default startup opens no listener.")
         ttk.Label(shell,textvariable=self.message,style="Muted.TLabel",wraplength=1140).pack(side="bottom",fill="x",pady=(10,0))
         self.notebook=ttk.Notebook(shell);self.notebook.pack(fill="both",expand=True)
-        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information")
+        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information","Backup")
         for name in names:
             frame=ttk.Frame(self.notebook,padding=14);self.notebook.add(frame,text=name);self._tab_frames[name]=frame
         self.values={key:tk.StringVar() for key in ("speed","temperature","weight","lid","error","firmware","clock","direction")}
         self._dashboard();self._motor();self._temperature();self._sensors();self._faults()
         self._protocol();self._scenarios();self._timeline();self._android();self._settings();self._information()
+        from .backup.gui import BackupPanel
+        self.backup_panel=BackupPanel(self._tab_frames["Backup"])
         self._load_profile_controls();self.refresh();self._after=root.after(50,self.poll)
 
     def _card(self,parent,label,key):
@@ -458,6 +460,7 @@ class DesktopApp:
 
     def close(self):
         if self.closed:return
+        self.backup_panel.close()
         self.cancel_job();self.disable_android();self.twin.disarm();self.closed=True
         if self._after:
             self.root.after_cancel(self._after);self._after=None
