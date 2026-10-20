@@ -58,8 +58,25 @@ and returns to the previous launcher. The shell query/clear-own-HOME receiver is
 protected by Android's DUMP permission. It cannot change arbitrary protected
 packages. Install the manager with a transaction before selecting its HOME;
 rollback restores the previous explicit or implicit HOME before removing it.
-Its SAF/PackageInstaller flow requires normal Android user consent; complete
-end-to-end verification of that import/consent path remains in progress.
+Its SAF/PackageInstaller flow requires normal Android user consent. The complete
+file-selection/cancel/consent/new-install path passed on the API23 emulator.
+Physical USB-drive recognition and deployment on an original MCC remain
+unverified; the emulator test used a test-only document provider.
+
+## USB cable versus USB storage
+
+The PC workflow uses an explicitly selected, authorized ADB connection. The
+owner's backup shows debugging disabled by default; no physical MCC procedure
+for enabling it has been verified. Operational emulator tests do not remove
+that prerequisite on the actual appliance.
+
+The native Manager can select an APK from a file provider exposed by Android,
+including a USB drive **if the physical system mounts and exposes it**. It does
+not supply USB autorun or a verified first-install path on the original MCC.
+The actual SAF test proves new installation with consent, not a full USB-drive
+update/rollback procedure. Supported desktop debug-app updates and rollback
+have their separate evidence below. Firmware/partition writes are not enabled
+by either application-installation workflow.
 
 Two actual API 23 emulator cycles exercised installation, launch, removal,
 setting restoration and resumed rollback, including interruption after Package
