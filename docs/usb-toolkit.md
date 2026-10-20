@@ -63,6 +63,37 @@ file-selection/cancel/consent/new-install path passed on the API23 emulator.
 Physical USB-drive recognition and deployment on an original MCC remain
 unverified; the emulator test used a test-only document provider.
 
+## Installing and updating from a USB drive with the Manager
+
+The owner's path without a computer has two halves. The **first installation**
+of the Manager uses stock Android 6 screens only: the storage notification's
+*Explore* action (or the file browser) on the mounted drive, touching the APK,
+Android's *Install blocked* dialog leading to *Settings → Unknown sources*,
+then Android's own *Install* and *Open*. Every later installation or update
+goes through the Manager: *Install a user-selected APK* opens Android's document
+picker, where a mounted drive appears as a root; the Manager inspects the file,
+states new-installation versus update and warns about an older version or a
+different signing key, and Android's PackageInstaller asks for consent and
+applies its signature and compatibility checks. Results are journaled, explained
+in plain language together with what is actually installed now, and the
+installed app can be started from the Manager. See the Android project README
+for the implementation and the API 23 instrumentation.
+
+Firmware facts (static): the original image declares USB Host and a vold-managed
+removable volume for the service port (`fstab.mt6580`: `voldmanaged=usbotg:auto`,
+vfat), and ships DocumentsUI, PackageInstaller, Settings, SystemUI and the
+manufacturer's own file manager app. What they do not prove: that a physical
+stick is powered, enumerated and mounted on an original MCC, and that the status
+bar, Settings or that file manager can be reached from the full-screen
+manufacturer app. One lab result narrows the path further: on Android 6 the
+stock document browser (the notification's *Explore* screen) does **not** hand an
+APK to the installer, because it offers a `content:` URI that the API 23
+PackageInstaller refuses; a file manager that opens the APK by file path does,
+and the installer side (blocked dialog → Settings → Unknown sources → Install →
+Open) passed on the API 23 emulator with exactly that handover. The remaining
+prerequisites are the owner's manual checks and stay the gate of the first
+installation. There is no autorun.
+
 ## USB cable versus USB storage
 
 The PC workflow uses an explicitly selected, authorized ADB connection. The

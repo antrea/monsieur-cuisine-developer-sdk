@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — app installation and updates from a USB drive (Manager)
+
+- Manager (API 23): the install flow now reads the selected document's name and
+  size, inspects the APK (label, package, version, signatures), distinguishes a
+  new installation from an update, warns about downgrades and foreign signing
+  keys before Android's own checks, journals every phase, explains each
+  PackageInstaller outcome in plain words with the real installed state, offers
+  to open the installed app, and recovers a readable state when it was closed
+  while reading, before Android answered or during a pending confirmation.
+- Demo app: a visible launch counter and notes file in private storage, so an
+  update's data preservation can be observed; `demoVersionName`/`demoMinSdk`
+  Gradle properties for versioned and deliberately incompatible fixtures.
+- Optional release signing of Manager and demo with an owner-kept key through
+  `-PmcSigningProperties=...`; a missing key fails the build instead of being
+  generated.
+- `UsbDeliveryExercise` (run by `ConsentInstrumentation` with `-e scenario usb`)
+  and a multi-file test DocumentsProvider cover the owner's path on the API 23
+  emulator: new install, data creation, cancelled update, damaged file, foreign
+  key, incompatible minSdk, vanished file, real update keeping data, downgrade
+  refusal, Manager closed during consent. Lab finding recorded in the docs: the
+  stock Android 6 document browser cannot hand an APK to the installer.
+- Manager versionCode 2 (2.0.0-dev1).
+
 ## Unreleased — offline software batch
 
 - Fix: `mc-backup discard` did not recognize Windows directory junctions on

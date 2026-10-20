@@ -1,5 +1,22 @@
 # Validation and reproducibility
 
+## Owner app installation and updates from a drive (2026-10-20)
+
+The Manager's install/update path is exercised on the API 23 emulator by
+`UsbDeliveryExercise` (started through `ConsentInstrumentation` with
+`-e scenario usb`, see the [Android README](../android/README.md)): new
+installation with Android's consent, data creation in the installed app,
+cancelled update, damaged file, foreign signing key, APK requiring a newer
+Android, file no longer readable, real update keeping the app's data, downgrade
+refusal and the Manager closed while Android waits for consent. The documents
+come from a test-only provider inside the test package; that proves the software
+flow, not a mounted drive on an appliance. The first installation of the Manager
+itself was driven through stock Android 6 screens only (document browser,
+"install blocked", Settings, consent, Open) with a private adb script; the stock
+document browser does not hand an APK to the installer on Android 6, which the
+guides record as an open step for the appliance's own file manager. No physical
+MCC test was run.
+
 ## Offline software batch (2026-10-20)
 
 The suite grew to **287 Python tests** with the virtual host presets, service

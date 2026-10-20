@@ -137,6 +137,11 @@ public final class ConsentInstrumentation extends Instrumentation {
         stage("API23_DOUBLE_CLOSE_FAILURE_REPRODUCED");
     }
     @Override public void onStart() {
+        if ("usb".equals(arguments.getString("scenario"))) {
+            // The owner's USB install/update path shares this runner: see UsbDeliveryExercise.
+            new UsbDeliveryExercise(this, arguments).run();
+            return;
+        }
         Bundle result = new Bundle(); Activity activity = null;
         try {
             if (Build.VERSION.SDK_INT != 23 || !("goldfish".equals(Build.HARDWARE) || "ranchu".equals(Build.HARDWARE))) {
