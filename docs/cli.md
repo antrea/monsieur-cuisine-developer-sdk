@@ -46,7 +46,7 @@ The native desktop shows the same original binary frames in its Protocol Monitor
 
 ![Unified desktop protocol monitor](../assets/screenshots/protocol-monitor.png)
 
-CLI file reads are bounded to 100 MB, decoded streams to 100000 frames, and JSONL to 100000 records. These are offline tools, not an unbounded packet-capture service.
+CLI file reads are bounded to 100 MB, decoded streams to 100000 frames, and JSONL to 100000 records. Full JSON documents and `--params` objects are limited to 512 nested containers before decoding, independently of the platform's native JSON recursion limit; excessive nesting produces the structured `RecursionError` CLI error. Brackets inside strings do not count. These are offline tools, not an unbounded packet-capture service.
 
 ## Scenarios, recordings and conformance
 
