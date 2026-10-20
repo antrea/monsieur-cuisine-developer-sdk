@@ -137,6 +137,22 @@ class RedTeamTwinRegressions(unittest.TestCase):
 
 
 class MethodologyRegressions(unittest.TestCase):
+    def test_cli_json_depth_is_bounded_before_the_platform_decoder(self):
+        from unittest.mock import patch
+        from monsieur_cuisine_sdk import cli
+        with patch.object(cli.json, 'loads', side_effect=AssertionError('decoder reached')):
+            for opening, closing in (('[', ']'), ('{"x":', '}')):
+                with self.subTest(container=opening), self.assertRaises(RecursionError):
+                    cli._loads_bounded(opening * (cli.MAX_JSON_DEPTH + 1) + '0' + closing * (cli.MAX_JSON_DEPTH + 1))
+
+    def test_cli_json_depth_ignores_string_brackets_and_escaped_quotes(self):
+        import json
+        from monsieur_cuisine_sdk import cli
+        value = {'text': '[' * 2000 + '\\"' + '}' * 2000, 'nested': [{'ok': True}]}
+        self.assertEqual(cli._loads_bounded(json.dumps(value)), value)
+        with self.assertRaises(json.JSONDecodeError):
+            cli._loads_bounded('{"broken": }')
+
     def test_stress_oracle_still_fails_under_python_optimize(self):
         # RT-M: bare asserts vanished under -O and a broken twin reported PASS.
         import os, subprocess, sys

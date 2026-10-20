@@ -13,6 +13,7 @@ from . import __version__
 
 MAX_INPUT_BYTES = 100_000_000
 MAX_FRAMES = 100_000
+MAX_JSON_DEPTH = 512
 
 
 def _read(path: Path) -> str:
@@ -21,12 +22,39 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig")
 
 
+def _loads_bounded(text: str):
+    """Reject excessive containers before platform-specific JSON recursion limits.
+
+    Brackets in strings, including escaped quotes/backslashes, are not nesting.
+    Syntax validation remains the JSON decoder's responsibility.
+    """
+    depth = 0
+    in_string = escaped = False
+    for character in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == '\\':
+                escaped = True
+            elif character == '"':
+                in_string = False
+        elif character == '"':
+            in_string = True
+        elif character in '[{':
+            depth += 1
+            if depth > MAX_JSON_DEPTH:
+                raise RecursionError(f"JSON nesting exceeds {MAX_JSON_DEPTH} levels")
+        elif character in ']}':
+            depth -= 1
+    return json.loads(text)
+
+
 def _json(path: Path):
-    return json.loads(_read(path))
+    return _loads_bounded(_read(path))
 
 
 def _object(text: str) -> dict:
-    value = json.loads(text)
+    value = _loads_bounded(text)
     if not isinstance(value, dict):
         raise ValueError("--params must be a JSON object")
     return value
