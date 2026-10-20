@@ -51,7 +51,8 @@ class BackupPanel:
                                ("Compare", lambda: self.start("compare")),
                                ("Import", lambda: self.start("import")),
                                ("Stage full session", lambda: self.start("stage")),
-                               ("Export report", self.export)):
+                               ("Export report", self.export),
+                               ("Discard output", self.discard)):
             button = ttk.Button(row, text=label, command=command); button.pack(side="left", padx=3)
             self.buttons.append(button)
         ttk.Button(row, text="Cancel", command=self.cancelled.set).pack(side="left", padx=3)
@@ -166,6 +167,36 @@ class BackupPanel:
             self.status.set("Report exported.")
         except (ValueError, OSError):
             self.status.set("Export rejected: choose a new file outside the backup session.")
+
+    def discard(self, *, confirm=None):
+        """Delete the SDK-created output folder named in the output field after an explicit confirmation."""
+        if self.busy or self.closed:
+            return
+        from .cleanup import describe_output, discard_output
+        destination = self.destination.get()
+        if not destination:
+            self.status.set("Name the SDK output folder to discard in the output field."); return
+        try:
+            info = describe_output(destination)
+        except (ValueError, OSError):
+            self.status.set("Not an SDK import/stage/recovery output: nothing deleted."); return
+        if info["complete"]:
+            self.status.set("This output is complete; delete it with the CLI --include-complete option if intended."); return
+        if confirm is None:
+            from tkinter import messagebox
+            confirm = messagebox.askyesno("Discard output", f"Delete the {info['status']} {info['kind']} output folder? "
+                                          "Source sessions are not touched.", parent=self.parent)
+        if not confirm:
+            self.status.set("Discard cancelled."); return
+        try:
+            self.last_result = discard_output(destination)
+            self.status.set("Output discarded. Source files were not modified.")
+        except (ValueError, OSError, InterruptedError):
+            self.last_result = None
+            self.status.set("Discard refused or interrupted; remaining files were kept.")
+            return
+        self.output.configure(state="normal"); self.output.delete("1.0", "end")
+        self.output.insert("end", json.dumps(self.last_result, indent=2)); self.output.configure(state="disabled")
 
     def close(self):
         self.closed = True; self.cancelled.set()

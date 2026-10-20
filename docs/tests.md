@@ -1,5 +1,17 @@
 # Validation and reproducibility
 
+## Offline software batch (2026-10-20)
+
+The suite grew to **287 Python tests** with the virtual host presets, service
+callbacks, scale display, LED model and the explicit output discard. It passed
+on CPython 3.13 (build environment with the optional extras, one symlink skip)
+and on CPython 3.11, 3.12 and 3.14 (base interpreters, three skips: symbolic
+links need a privilege this user lacks, and the pyserial/capstone extras were
+not installed). Every host rule added in this batch is a static reading of the
+decompiled build-292 app; none was executed on Android or on an appliance, and
+the twin's board responses remain synthetic. Windows only; hosted jobs for this
+branch have not run.
+
 ## SDK 2.0 completion development verification (2026-10-18)
 
 The latest complete local suite passed **265 Python tests in 102.928 seconds on

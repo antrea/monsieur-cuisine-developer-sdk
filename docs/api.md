@@ -76,7 +76,9 @@ minimum speed, lid/error entry guards and explicit hot-speed confirmation.
 `feed()` remains raw. `set_recipe_temperature(celsius)` exposes the OEM recipe
 binning; `start_turbo()` sends one gated canonical turbo command and requires
 explicit STOP on release. See [full policy, timing and calibration](mcc-oem-policy.md).
-The optional `CookingHost` uses virtual time above the twin, not a new controller.
+The optional `CookingHost` uses virtual time above the twin, not a new controller;
+it also runs the app's presets (`start_program`), applies the running knob rules,
+records the service's change callbacks in `events` and models the LED (`led_rgb()`).
 
 `backup.verify.verify_session`, `backup.inventory.inventory_session` and
 `backup.external.MCCBackupAdapter` provide local read-only backup operations.

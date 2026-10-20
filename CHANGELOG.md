@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — offline software batch
+
+- MCC virtual host: the app's kneading/roasting/steaming presets as data, unit
+  sub-step cycling at the one-second tick (including the `<=` boundary and the
+  rest-phase rewrite), sequence steps, running knob rules (speed 0 stops, heat
+  caps speed, hot-speed confirmation selects 4, time restart) and preheat skip.
+- Service change callbacks with edge-triggered bad-state semantics and app
+  scale-overload code 7, scale display rounding, and a pure LED model with the
+  app's colours, blink/pulse timing and timeouts; all recorded by `CookingHost`.
+- `mc-backup discard` and a native **Discard output** button delete only
+  SDK-marked import/stage/recovery outputs, never sessions, links or complete
+  outputs without explicit consent.
+- `examples/cooking_programs.py` prints a preset's latched commands, callbacks and LED.
+
 ## Unreleased — full-completion work in progress
 
 - Native Toolkit panels use operational ADB and recorded-reference conformance APIs.

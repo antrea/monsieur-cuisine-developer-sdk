@@ -43,9 +43,21 @@ def main(argv=None):
     external.add_argument("--installation", type=Path, required=True)
     external.add_argument("--python", required=True)
     external.add_argument("--reports", type=Path, required=True)
+    discard = sub.add_parser("discard", help="Delete an SDK-created import/stage/recovery output directory")
+    discard.add_argument("directory", type=Path)
+    discard.add_argument("--yes", action="store_true", help="actually delete; without it the directory is only described")
+    discard.add_argument("--include-complete", action="store_true", help="also delete a complete output")
     args = parser.parse_args(argv)
     try:
-        if args.command == "import-backup":
+        if args.command == "discard":
+            from .cleanup import describe_output, discard_output
+            if args.yes:
+                result = discard_output(args.directory, include_complete=args.include_complete)
+            else:
+                result = {**describe_output(args.directory), "deleted": False,
+                          "hint": "add --yes to delete (and --include-complete for a complete output)"}
+            result.pop("directory", None)
+        elif args.command == "import-backup":
             from .importer import import_backup
             result = import_backup(args.source, args.destination, session_member=args.session_member,
                                    boot1=args.boot1, boot2=args.boot2, expected_sha256=args.sha256)

@@ -15,12 +15,14 @@ Python library / CLI / native Tk desktop / optional localhost Android client
           build-292 codec              independent wire codec
           synthetic controller         synthetic controller
 
-Optional MCC CookingHost -> host latch/timers -> original MCC frames -> twin
+Optional MCC CookingHost -> host latch/timers/presets -> original MCC frames -> twin
+                         -> RX -> IPC snapshot -> change callbacks, LED model
 
 Backup tab / mc-backup -> validated session -> GPT/image/ext4 readers
                          |                  -> sanitized inventory/comparison
                          + import/extract -> NEW private files/manifests
                          + stage/recovery -> NEW image + durable chunk ledger
+                         + discard -> only SDK-marked outputs, never sessions
                          + supplied pinned external tool -> explicit file verifier
 
 mc-usb / native Toolkit tab -> explicit-target AdbClient -> Android Package Manager
@@ -32,8 +34,10 @@ Conformance lab / verifier -> independent recorded references or isolated OEM DE
 The PowerBoard endpoint accepts selected original binary frames. High-level
 MCC command construction applies documented host policy; `feed()` bypasses that
 policy so a controller experiment is not confused with app behavior. Optional
-`CookingHost` represents the app latch/timer layer with explicit virtual time.
-Neither layer proves firmware interlocks. The independent MCS profile is not
+`CookingHost` represents the app latch/timer layer with explicit virtual time:
+its presets (`programs`), one-second sub-step selection, running knob rules, the
+service's change callbacks (`ipc`) and the LED service (`led`) are pure models
+of decompiled app logic. Neither layer proves firmware interlocks. The independent MCS profile is not
 inferred from the MCC backup.
 
 Firmware readers operate on bounded file windows. No image is mounted or

@@ -5,8 +5,9 @@
 **One SDK. Two devices. One Digital Twin.**
 
 > **SDK 2.0 local development branch (`2.0.0.dev0`).** Adds read-only backup
-> verification/inventory, a native Backup tab, build-292 host policy and optional
-> host latch/timing simulation. Existing v0.1.0 screenshots and hosted results
+> verification/inventory, a native Backup tab, build-292 host policy and an optional
+> virtual host with latch/timing, the app's presets, service callbacks and LED model.
+> Existing v0.1.0 screenshots and hosted results
 > below describe that published baseline; this local branch has its own test
 > evidence and has not been pushed or released. Start with [SDK 2.0 architecture](ARCHITECTURE.md),
 > [Backup Manager](docs/backup.md), [MCC OEM policy](docs/mcc-oem-policy.md),
@@ -19,7 +20,7 @@
 > remaining OEM analysis and final acceptance remain
 > unfinished. These are development features, not a final SDK 2.0 release.
 
-The latest completion checks include 265 Python tests, repeated execution of
+The latest completion checks include 287 Python tests, repeated execution of
 57,998 original DEX references and actual API23 Manager SAF/installation consent.
 The separate original JNI probe verifies software PTY open and records an
 original close failure explicitly; it does not claim physical controller validation.

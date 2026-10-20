@@ -92,6 +92,23 @@ Comparison validates both backups before comparing GPT layout, partition/boot
 content and selected version/model properties. Matching files are never
 reported as proof of hardware compatibility.
 
+## Discarding SDK outputs
+
+```sh
+mc-backup discard NEW_PRIVATE_IMPORT            # describes the folder, deletes nothing
+mc-backup discard NEW_PRIVATE_IMPORT --yes      # deletes an incomplete/failed/interrupted output
+mc-backup discard NEW_STAGE --yes --include-complete
+```
+
+`discard` removes only a directory whose top level carries the SDK's own
+marker (`import-status.json` from imports and stages, or `image-transaction.json`
+from file recoveries). Source sessions, plain folders, unknown markers, links,
+junctions and special files are refused and nothing is deleted. A complete
+output is kept unless `--include-complete` is given. Deletion stops cleanly on
+cancellation, leaving the remainder in place. `backup.cleanup.discard_output`
+is the API; the native Backup tab's **Discard output** button deletes the folder
+named in the output field after a confirmation and never a complete one.
+
 ## Original external verifier
 
 ```sh
