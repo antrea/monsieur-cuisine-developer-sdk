@@ -2,6 +2,15 @@
 
 ## Unreleased — offline software batch
 
+- Fix: `mc-backup discard` did not recognize Windows directory junctions on
+  Python 3.11 (`Path.is_junction()` only exists from 3.12) and `os.walk` entered
+  them, so a junction could redirect deletion outside the selected output.
+  Links are now detected from `lstat` file attributes (any reparse point is
+  refused), the walk never enters an unchecked entry, and every file and folder
+  path is re-checked right before removal. Windows regressions cover a junction
+  as the selected folder, a nested junction to a sibling and a folder swapped
+  for a junction after enumeration; all four fail on the previous code.
+
 - MCC virtual host: the app's kneading/roasting/steaming presets as data, unit
   sub-step cycling at the one-second tick (including the `<=` boundary and the
   rest-phase rewrite), sequence steps, running knob rules (speed 0 stops, heat

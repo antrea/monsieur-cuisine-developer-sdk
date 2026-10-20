@@ -103,7 +103,11 @@ mc-backup discard NEW_STAGE --yes --include-complete
 `discard` removes only a directory whose top level carries the SDK's own
 marker (`import-status.json` from imports and stages, or `image-transaction.json`
 from file recoveries). Source sessions, plain folders, unknown markers, links,
-junctions and special files are refused and nothing is deleted. A complete
+junctions and special files are refused and nothing is deleted. Links are
+detected from file attributes on every supported Python, so on Windows any
+reparse point (symbolic link, junction, mount point) is refused: at the selected
+folder, while listing its content, and again right before each file or folder is
+removed. A complete
 output is kept unless `--include-complete` is given. Deletion stops cleanly on
 cancellation, leaving the remainder in place. `backup.cleanup.discard_output`
 is the API; the native Backup tab's **Discard output** button deletes the folder
