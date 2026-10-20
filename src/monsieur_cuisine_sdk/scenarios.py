@@ -148,10 +148,14 @@ def run_stress(model, count=1000, *, seed=292):
                     twin.set_faults(drop_next=rng.randrange(2), corrupt_next=rng.randrange(2))
                 twin.advance(rng.randrange(10)/50)
                 state = twin.get_state()
-                assert state.actual_speed >= 0
-                assert (state.actual_rpm is None) == (twin.model == DeviceModel.MCS)
+                # Explicit checks: bare asserts vanish under python -O and report PASS.
+                if state.actual_speed < 0:
+                    raise AssertionError("negative observed speed")
+                if (state.actual_rpm is None) != (twin.model == DeviceModel.MCS):
+                    raise AssertionError("RPM availability differs from the selected profile")
             twin.disarm(); twin.advance(10)
-            assert twin.get_state().actual_speed == 0
+            if twin.get_state().actual_speed != 0:
+                raise AssertionError("motion continues 10 s after disarm")
         except Exception as exc:
             failures.append({"case": case, "error": str(exc)})
     return {"PASS": not failures, "model": DeviceModel(model).value, "count": count,

@@ -64,6 +64,12 @@ _ERROR_NAMES = {
     1: "serial_communication", 3: "overvoltage", 4: "undervoltage",
     5: "motor", 6: "water_missing", 7: "motor_overheat", 8: "maximum_runtime",
 }
+ERROR_DESCRIPTIONS = {
+    1: "Internal serial communication fault", 3: "Input voltage too high",
+    4: "Input voltage too low", 5: "Motor overheated; allow it to cool",
+    6: "Pot overheated; add liquid", 7: "Motor overloaded; switch off and cool",
+    8: "Maximum runtime exceeded",
+}
 _CALIBRATION_NAMES = {0: "exit_or_normal", 230: "enter", 233: "start"}
 _CALIBRATION_STEPS = {
     0: "init", 1: "zero", 2: "one_kg", 3: "three_kg",
@@ -137,6 +143,16 @@ def encode_tx(
                        speed_value, temperature, 0, 0, 0, 0,
                        1 - android_direction, 0))
     frame.extend((checksum(frame), 0xAA))
+    return bytes(frame)
+
+
+def encode_calibration(command: str) -> bytes:
+    """Observed ENTER/START layout; EXIT is a normal STOP with calibration zero."""
+    if command not in ("enter", "start", "exit"):
+        raise FrameError("calibration must be enter, start or exit", "calibration")
+    frame = bytearray(encode_tx())
+    frame[12] = {"enter": 0xE6, "start": 0xE9, "exit": 0}[command]
+    frame[13] = checksum(frame[:13])
     return bytes(frame)
 
 
@@ -269,6 +285,7 @@ class RxFrame:
                 _ERROR_NAMES.get(self.error_code, "undefined")
                 if self.error_detected else "none"
             ),
+            "error_description": ERROR_DESCRIPTIONS.get(self.error_code, "Undefined controller fault") if self.error_detected else "No controller error",
             "android_error_code": self.android_error_code,
             "above_target_temperature": self.above_target_temperature,
             "bowl_ntc_detected": self.bowl_ntc_detected, "lid_open": self.lid_open,

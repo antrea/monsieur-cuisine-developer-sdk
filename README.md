@@ -4,6 +4,27 @@
 
 **One SDK. Two devices. One Digital Twin.**
 
+> **SDK 2.0 local development branch (`2.0.0.dev0`).** Adds read-only backup
+> verification/inventory, a native Backup tab, build-292 host policy and an optional
+> virtual host with latch/timing, the app's presets, service callbacks and LED model.
+> Existing v0.1.0 screenshots and hosted results
+> below describe that published baseline; this local branch has its own test
+> evidence and has not been pushed or released. Start with [SDK 2.0 architecture](ARCHITECTURE.md),
+> [Backup Manager](docs/backup.md), [MCC OEM policy](docs/mcc-oem-policy.md),
+> [ADB application transactions](docs/usb-toolkit.md), [serial driver](docs/hardware-transport.md),
+> [independent ART conformance](docs/oem-conformance.md) and [recovery limits](docs/recovery.md).
+> The completion extension is still in progress: an operational API 23 installer/
+> rollback, alternative launcher, Firmware Lab and new-file Recovery panels exist.
+> Backup import/stage/compare and original file verification are operational;
+> checked debug-app/data updates are implemented. Supervised device acquisition,
+> remaining OEM analysis and final acceptance remain
+> unfinished. These are development features, not a final SDK 2.0 release.
+
+The latest completion checks include 287 Python tests, repeated execution of
+57,998 original DEX references and actual API23 Manager SAF/installation consent.
+The separate original JNI probe verifies software PTY open and records an
+original close failure explicitly; it does not claim physical controller validation.
+
 Develop and test software for **Lidl/Silvercrest Monsieur Cuisine Connect (MCC)** and **Monsieur Cuisine Smart (MCS)** without owning either appliance. This independent, unofficial toolkit from [blackstufflabs.com](https://blackstufflabs.com) combines a Python library, a Kotlin/Android SDK and one native desktop Digital Twin.
 
 Use it to explore the original protocol bytes, build an application, test motor-control logic, inject sensor faults and reproduce a debugging session. The virtual PowerBoards maintain state and generate dynamic binary telemetry. Their physics are synthetic; the project does not certify software for a real appliance.
@@ -35,7 +56,7 @@ The Python runtime uses the standard library. The desktop needs Tcl/Tk; no brows
 | Speed observation | Modeled RPM; target curves are illustrative | Raw motor levels; physical RPM conversion is unknown |
 | Main limits | No verified wire duration or query operation | OTA research is partial; no firmware flashing |
 
-The profiles retain independent field layouts, checksums, temperature tables and error meanings. Numeric speed levels are not physically equivalent across models. The SDK does not open either observed hardware serial interface.
+The profiles retain independent field layouts, checksums, temperature tables and error meanings. Numeric speed levels are not physically equivalent across models. Normal startup opens no hardware serial interface; the optional driver requires an explicitly selected port and separate active-mode authorization.
 
 ## Screenshots
 

@@ -1,5 +1,19 @@
 # Migration from the separate toolkits
 
+## SDK 2.0 local branch changes
+
+The development build is `2.0.0.dev0`, not a remote release. Python and Kotlin
+high-level starts now default to CW. Specify CCW explicitly to preserve an old
+call's direction. MCC host policy now caps heated/reverse speeds and requires
+minimum STANDARD speed one; `parameters={"host_policy":"strict"}` rejects
+adaptation, while raw `feed()` preserves wire experimentation. Old recordings
+whose checkpoints encode earlier policy/model defaults may fail exact replay;
+keep the originating SDK version for those traces rather than silently claiming
+equivalent results. New recordings retain explicit policy/physics parameters.
+See [host policy](mcc-oem-policy.md) for recipe conversion, calibration hypotheses
+and the separate optional host timing model. `mc-sdk --model` stays unchanged;
+`mc-backup` and `mc-usb` are separate interfaces for their specific local tools.
+
 Monsieur Cuisine Developer SDK **0.1.0** is a new product. Earlier MCC/MCS Developer Toolkit 0.2.0 version labels remain historical provenance, not the unified package version.
 
 Use one installation, GUI and CLI:

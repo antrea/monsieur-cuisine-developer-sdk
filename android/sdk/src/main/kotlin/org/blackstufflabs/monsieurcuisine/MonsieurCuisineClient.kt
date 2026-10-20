@@ -6,7 +6,10 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 /** Worker-thread API. Writes do not wait for or fabricate acknowledgments. */
-class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport): AutoCloseable {
+enum class HostPolicyMode { OEM, STRICT }
+
+class MonsieurCuisineClient @JvmOverloads constructor(val model: DeviceModel, val transport: Transport,
+                           val hostPolicy: HostPolicyMode = HostPolicyMode.OEM): AutoCloseable {
     val capabilities=WireProfiles.capabilities(model)
     private val lifecycle=Any();private val commands=Any();private val epoch=AtomicLong()
     private var connecting=false;private var requested=RequestedOperation();private var sequence=0
@@ -27,7 +30,12 @@ class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport): A
         try {
             transport.connect()
             synchronized(lifecycle) {
-                if(epoch.get()!=generation) throw IOException("client connection cancelled")
+                if(epoch.get()!=generation) {
+                    // close() ran before the transport had a session to close:
+                    // release the socket opened afterwards instead of leaking it.
+                    transport.close()
+                    throw IOException("client connection cancelled")
+                }
                 connecting=false
             }
         } catch(error: Exception) {
@@ -44,16 +52,27 @@ class MonsieurCuisineClient(val model: DeviceModel, val transport: Transport): A
         val generation=epoch.get()
         val bytes=synchronized(commands) {
             if(epoch.get()!=generation) throw IOException("obsolete command discarded")
-            val next=build(requested)
+            val candidate=build(requested)
+            val next=if(model==DeviceModel.MCC && candidate.running) {
+                require(candidate.speed in 0..10) { "speed must be 0..10" }
+                val cap=if(candidate.temperatureC>0 || candidate.direction==MotorDirection.COUNTER_CLOCKWISE) 3 else 10
+                val adapted=candidate.speed.coerceIn(1,cap)
+                require(hostPolicy!=HostPolicyMode.STRICT || adapted==candidate.speed) { "MCC host speed policy" }
+                observed?.let { state ->
+                    require(!state.lidOpen && state.errorCode==0) { "MCC host start gate" }
+                    require(state.actualTemperatureC<60 || adapted<4) { "hot-speed confirmation unavailable in Kotlin client" }
+                }
+                candidate.copy(speed=adapted)
+            } else candidate
             val frame=WireProfiles.encode(model,next,nextSequence())
             transport.sendFrame(frame);requested=next;frame
         }
         if(epoch.get()==generation) onFrame?.invoke(FrameEvent(model,generation,"TX",WireProfiles.hex(bytes)))
     }
-    fun startMotor(speed: Int, direction: MotorDirection=MotorDirection.COUNTER_CLOCKWISE,
+    fun startMotor(speed: Int, direction: MotorDirection=MotorDirection.CLOCKWISE,
                    temperatureC: Int=0, durationSeconds: Int=0) =
         write { RequestedOperation(true,speed,direction,temperatureC,durationSeconds) }
-    fun stopMotor() = write { RequestedOperation() }
+    fun stopMotor() = write { RequestedOperation(direction=it.direction) }
     fun setDirection(direction: MotorDirection) = write { it.copy(direction=direction) }
     private fun receiveRaw(timeoutMillis: Int,generation:Long):ByteArray {
         require(timeoutMillis>0)

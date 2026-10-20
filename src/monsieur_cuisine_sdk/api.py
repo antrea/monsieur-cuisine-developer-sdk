@@ -83,7 +83,8 @@ class DigitalTwin:
     """
     def __init__(self, model: DeviceModel | str, *, seed: int = 292,
                  parameters: dict | None = None, record: bool = True,
-                 max_actions: int = 100000, max_pending_bytes: int = 65536):
+                 max_actions: int = 100000, max_pending_bytes: int = 65536,
+                 on_recording_full: str = "stop"):
         self.model = DeviceModel(model)
         if type(seed) is not int:
             raise ValueError("seed must be integer")
@@ -91,7 +92,13 @@ class DigitalTwin:
             raise ValueError("record bool and max_actions 2..100000 required")
         if type(max_pending_bytes) is not int or not 269 <= max_pending_bytes <= 1048576:
             raise ValueError("max_pending_bytes must be 269..1048576")
+        if on_recording_full not in ("stop", "continue"):
+            raise ValueError("on_recording_full must be 'stop' or 'continue'")
         self.seed, self.max_actions, self.max_pending_bytes = seed, max_actions, max_pending_bytes
+        # "stop": a full recording requests a synthetic STOP and ends the session
+        # (scripted/CLI default). "continue": the recording is marked truncated
+        # and the simulation keeps running unrecorded (interactive desktop).
+        self.on_recording_full = on_recording_full
         self._thread = threading.get_ident()
         self.profile = _profile(self.model, seed, parameters)
         self.generation = 0
@@ -109,7 +116,9 @@ class DigitalTwin:
         self.recording_full = False
         self._recorded_bytes = 0
         self.command_count = 0
+        self.rejected_commands = 0
         self.record_enabled = record
+        self.record_requested = record
         self.timeline = deque(maxlen=1000)
         self.frames = deque(maxlen=400)
         self.history = deque(maxlen=600)
@@ -201,6 +210,12 @@ class DigitalTwin:
             raise RecordingLimitError("recording ended at its capacity; create a new session to start again")
         if self.record_enabled and (len(self.recording["actions"]) >= self.max_actions - 1
                                     or self._recorded_bytes >= 32_000_000 - 524288):
+            if self.on_recording_full == "continue":
+                self.record_enabled = False
+                self.recording["truncated"] = True
+                self.recording["ended"] = "capacity: recording truncated; simulation continued unrecorded"
+                self.timeline.append({"event": "recording_truncated", "generation": self.generation})
+                return
             self._disarm_impl()
             self._record("recording_limit_stop", {}, [])
             self.recording["ended"] = "capacity: synthetic STOP requested before rejected operation"
@@ -263,6 +278,7 @@ class DigitalTwin:
                     replies.extend(self.profile.feed_frame(frame))
                     self.command_count += 1
                 except ValueError as exc:
+                    self.rejected_commands += 1
                     self.timeline.append({"event": "rejected_command", "reason": str(exc)})
         self.frames.append({"direction": "TX", "hex": raw.hex(" ").upper(),
                             "time": self.now_ns / 1e9, "model": self.model.value})
@@ -270,10 +286,18 @@ class DigitalTwin:
         self._point(); self._record("feed", {"hex": raw.hex()}, result)
         return result
 
-    def start_motor(self, speed: int = 2, direction: str = "ccw", temperature: int = 0,
-                    duration: int = 0, *, owner=None):
+    def start_motor(self, speed: int = 2, direction: str = "cw", temperature: int = 0,
+                    duration: int = 0, *, owner=None, hot_speed_confirmed=False):
         self._check_owner(owner)
-        raw = self.profile.encode_start(speed, direction, temperature, duration)
+        if type(hot_speed_confirmed) is not bool:
+            raise ValueError("hot_speed_confirmed must be bool")
+        if self.model == DeviceModel.MCC:
+            raw = self.profile.encode_start(speed, direction, temperature, duration,
+                                            hot_speed_confirmed=hot_speed_confirmed)
+        else:
+            if hot_speed_confirmed:
+                raise ValueError("MCC host confirmation is not an MCS policy")
+            raw = self.profile.encode_start(speed, direction, temperature, duration)
         return self.feed(raw, owner=owner)
 
     def stop_motor(self, *, owner=None):
@@ -287,8 +311,36 @@ class DigitalTwin:
             return []
 
     def set_temperature(self, celsius: int, *, owner=None):
-        state = self.get_state()
-        return self.start_motor(int(state.requested_speed), state.requested_direction, celsius, owner=owner)
+        """Reissue the current command with a new exact Celsius target.
+
+        The running operation/program, speed, direction and (MCS) remaining
+        countdown are preserved by the selected profile's own encoder.
+        """
+        self._check_owner(owner)
+        return self.feed(self.profile.encode_temperature(celsius), owner=owner)
+
+    def set_recipe_temperature(self, celsius: int, *, owner=None):
+        """MCC build-292 recipe Celsius binning; no equivalent MCS claim."""
+        self._check_owner(owner)
+        if self.model != DeviceModel.MCC:
+            raise ValueError("recipe temperature binning is verified only for MCC build 292")
+        return self.feed(self.profile.encode_recipe_temperature(celsius), owner=owner)
+
+    def start_turbo(self, *, owner=None):
+        """Apply MCC host entry gates and emit canonical C6/10/CW/no-heat.
+
+        This sends one command. Call stop_motor on release; the separate host
+        timing policy is not a controller watchdog.
+        """
+        self._check_owner(owner)
+        if self.model != DeviceModel.MCC:
+            raise ValueError("this turbo API is specific to MCC build 292")
+        if self.profile.native.controller.requested_temperature_level >= 5:
+            raise ValueError("MCC manual turbo requires the previous target below level 5")
+        from .profiles.mcc.protocol.codec import Operation
+        if self.profile._operation not in (Operation.STOP, Operation.TURBO):
+            raise ValueError("MCC manual turbo requires an idle/stopped host session")
+        return self.feed(self.profile.encode_start(10, "cw", 0, operation=Operation.TURBO), owner=owner)
 
     def tare(self, *, owner=None):
         self._check_owner(owner)
@@ -371,7 +423,7 @@ class DigitalTwin:
 
     def switch_model(self, model: DeviceModel | str, *, parameters=None):
         self._check_thread()
-        if self.recording_full:
+        if self.recording_full or self.recording.get("truncated"):
             return self.new_session(model, parameters=parameters)
         selected = DeviceModel(model)
         candidate = _profile(selected, self.seed, parameters)
@@ -390,6 +442,7 @@ class DigitalTwin:
         self._faults = dict(delay_seconds=0.0, drop_next=0, corrupt_next=0, disconnected=False)
         self._response_serial = 0
         self.command_count = 0
+        self.rejected_commands = 0
         self.history.clear(); self._point()
         self._record("switch_model", {"model": selected.value, "parameters": deepcopy(candidate.parameters)}, [])
         return self.get_state()
@@ -406,7 +459,9 @@ class DigitalTwin:
         old_recording, generation = self.recording, self.generation + 1
         observers, hooks = self._observers, self._switch_observers
         seed, actions, pending = self.seed, self.max_actions, self.max_pending_bytes
-        self.__init__(selected, seed=seed, parameters=parameters, max_actions=actions, max_pending_bytes=pending)
+        policy, record = self.on_recording_full, self.record_requested
+        self.__init__(selected, seed=seed, parameters=parameters, record=record, max_actions=actions,
+                      max_pending_bytes=pending, on_recording_full=policy)
         self.generation = generation
         self.recording["initial_generation"] = generation
         self._observers, self._switch_observers = observers, hooks
@@ -419,7 +474,18 @@ class DigitalTwin:
 
 
 def replay(recording: dict | str | Path, *, cancelled=None) -> DigitalTwin:
-    """Validate and replay local data; no socket/file callbacks are evaluated."""
+    """Validate and replay local data; no socket/file callbacks are evaluated.
+
+    Malformed recordings raise ValueError (missing keys or wrong argument
+    shapes included), as documented, never a bare KeyError/TypeError.
+    """
+    try:
+        return _replay(recording, cancelled=cancelled)
+    except (KeyError, TypeError, AttributeError, RecursionError) as exc:
+        raise ValueError(f"invalid recording: {type(exc).__name__}: {exc}") from exc
+
+
+def _replay(recording, *, cancelled=None) -> DigitalTwin:
     if isinstance(recording, (str, Path)):
         path = Path(recording)
         if path.stat().st_size > 100_000_000:

@@ -21,11 +21,57 @@ import zipfile
 from audit_release import audit
 
 
+def mandatory_requirements(requires):
+    """Requirements without an ``extra ==`` marker: what every installation pulls in.
+
+    ``importlib.metadata.requires`` also lists optional extras such as
+    ``pyserial>=3.5,<4; extra == "serial"``. Those are opt-in and do not make the
+    wheel depend on third-party code; other markers (Python version, platform)
+    still count as mandatory.
+    """
+    import re
+    mandatory = []
+    for requirement in requires or ():
+        _name, _separator, marker = requirement.partition(';')
+        if not re.search(r'\bextra\s*==', marker):
+            mandatory.append(requirement.strip())
+    return mandatory
+
+
+def git_selection_issues(root, selected):
+    """Selected files that are untracked or uncommitted when root is a Git top level.
+
+    The audit walks the filesystem; without this check a private untracked file
+    in an allowlisted directory (for example docs/notes.md) would be archived.
+    Archives that are not their own Git top level are left to the audit alone.
+    """
+    try:
+        top = subprocess.run(['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
+                             capture_output=True, text=True, timeout=30)
+    except OSError:
+        return []
+    if top.returncode or Path(top.stdout.strip()).resolve() != Path(root).resolve():
+        return []
+    def git(*arguments):
+        done = subprocess.run(['git', '-C', str(root), *arguments], capture_output=True, timeout=60, check=True)
+        return [entry for entry in done.stdout.decode('utf-8').split('\0') if entry]
+    tracked = set(git('ls-files', '-z'))
+    changed = {entry[3:] for entry in git('status', '--porcelain=v1', '-z', '--untracked-files=all')
+               if len(entry) > 3 and entry[:2] != '??'}
+    issues = []
+    for path in sorted(selected):
+        if path not in tracked:issues.append({'path': path, 'reason': 'untracked file would enter the release'})
+        elif path in changed:issues.append({'path': path, 'reason': 'uncommitted change would enter the release'})
+    return issues
+
+
 def build_source(root, output):
     root, output = Path(root).resolve(), Path(output).resolve()
     if output == root or output.is_relative_to(root):raise ValueError('release output must be outside the public checkout')
     checked = audit(root)
     if not checked['passed']:raise ValueError('source audit failed: ' + json.dumps(checked['issues']))
+    selection = git_selection_issues(root, {row['path'] for row in checked['manifest']})
+    if selection:raise ValueError('release selection is not a clean commit: ' + json.dumps(selection[:20]))
     version = tomllib.loads((root/'pyproject.toml').read_text('utf-8'))['project']['version']
     if not isinstance(version,str) or not re.fullmatch(r'[0-9A-Za-z][0-9A-Za-z.+-]*',version):raise ValueError('invalid release version')
     name = f'monsieur-cuisine-developer-sdk-{version}'
@@ -100,7 +146,9 @@ def verify_wheel(root, output, wheel, *, gui=False, record_windows_launcher_bloc
             failed('installed wheel check failed; see installed-wheel-check.json')
         return True
     run([executable,'-I','-m','pip','install','--no-index','--no-deps',wheel])
-    code = """import importlib,json,pathlib,sys
+    import inspect
+    code = inspect.getsource(mandatory_requirements) + """
+import importlib,json,pathlib,re,sys
 from monsieur_cuisine_sdk import DigitalTwin,replay
 prefix=pathlib.Path(sys.prefix).resolve()
 assert pathlib.Path(importlib.import_module('monsieur_cuisine_sdk').__file__).resolve().is_relative_to(prefix)
@@ -117,8 +165,11 @@ for name in ('mcc_protocol','mcs_protocol','mcc_powerboard_simulator','mcs_digit
     assert pathlib.Path(importlib.import_module(name).__file__).resolve().is_relative_to(prefix)
 assert 'tkinter' not in sys.modules and 'socket' not in sys.modules
 import importlib.metadata
-assert not importlib.metadata.requires('monsieur-cuisine-developer-sdk')
-print(json.dumps({'standalone_both_profiles':True,'runtime_dependencies':[],'installed_under_venv':True}))
+declared=importlib.metadata.requires('monsieur-cuisine-developer-sdk') or []
+mandatory=mandatory_requirements(declared)
+assert not mandatory, mandatory
+extras=sorted({m.group(1) for r in declared for m in [re.search(r'extra\\s*==\\s*["\\']([^"\\']+)',r)] if m})
+print(json.dumps({'standalone_both_profiles':True,'runtime_dependencies':mandatory,'optional_extras':extras,'installed_under_venv':True}))
 """
     run([executable,'-I','-c',code])
     launcher_blocked=False

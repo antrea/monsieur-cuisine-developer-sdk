@@ -1,6 +1,9 @@
 # Documentation
 
-The current product is Monsieur Cuisine Developer SDK 0.1.0. Start with the English documents below; archived device research retains its original build scope and clearly marked historical commands.
+SDK 2.0 development: [Architecture](../ARCHITECTURE.md), [Backup Manager](backup.md),
+[MCC OEM policy](mcc-oem-policy.md), [USB toolkit](usb-toolkit.md), [Recovery scope](recovery.md).
+
+This local branch is SDK 2.0 development (`2.0.0.dev0`); the public baseline is 0.1.0. Start with the English documents below; archived device research retains its original build scope and clearly marked historical commands.
 
 | Task | Current guide |
 |---|---|
@@ -19,7 +22,7 @@ The current product is Monsieur Cuisine Developer SDK 0.1.0. Start with the Engl
 | Understand model and physical limits | [Safety and limitations](safety.md) |
 | Resolve common questions and symptoms | [FAQ](faq.md), [troubleshooting](troubleshooting.md), [glossary](glossary.md) |
 | Distinguish shipped work from planned verification/research | [Roadmap](roadmap.md) |
-| Prepare artifacts and a future authorized GitHub release | [Releasing](releasing.md), [release notes](../RELEASE_NOTES.md), [release audit](../RELEASE_AUDIT.md) |
+| Prepare artifacts and a GitHub release | [Releasing](releasing.md), [release notes](../RELEASE_NOTES.md), [release audit](../RELEASE_AUDIT.md) |
 
 The top-level [README](../README.md) is the current launch guide. The source distribution includes independent specs and synthetic fixtures for both devices.
 

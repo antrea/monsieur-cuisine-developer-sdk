@@ -79,6 +79,20 @@ class MainActivity: Activity() {
         }
         label("Monsieur Cuisine Developer SDK",23f)
         label("BlackStuff Labs · Synthetic PowerBoard · No hardware",12f)
+        // Local memory: a launch counter and a notes file in this app's private
+        // storage. They show whether an update through the Package Manager kept
+        // the app's data (same package name and signing key).
+        val memory=getSharedPreferences("local-memory",MODE_PRIVATE)
+        val launches=memory.getInt("launches",0)+1
+        memory.edit().putInt("launches",launches).apply()
+        val notes=java.io.File(filesDir,"notes.txt")
+        fun memoryText()="Local memory: launch $launches · notes ${if(notes.exists())notes.readLines().count { it.isNotBlank() } else 0} · app ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+        val memoryLabel=label(memoryText(),12f).apply { contentDescription="local-memory" }
+        Button(this).apply {
+            text="Save a note in this app's storage";contentDescription="save-note"
+            setOnClickListener { notes.appendText("note ${System.currentTimeMillis()}\n");memoryLabel.text=memoryText() }
+            content.addView(this)
+        }
         models=spinner("Device model",DeviceModel.entries.map { it.name })
         label("Android emulator host: 10.0.2.2 · original raw binary frames",12f)
         val row=LinearLayout(this)

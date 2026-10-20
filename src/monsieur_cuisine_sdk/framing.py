@@ -3,8 +3,21 @@
 Both envelope validators are used to fence foreign frames, never to switch the
 selected model. A valid foreign envelope is discarded as one unit, so an MCC
 command embedded inside an MCS OTA packet cannot actuate the MCC model.
+
+Resynchronization: 0xAA is both the MCS header and the MCC terminator, and 0x55
+is the MCC header. An 0xAA immediately followed by a header byte (an MCC
+terminator before the next "55 0F" frame, or a stray 0xAA before a real MCS
+header) would declare an envelope of at least 21761 bytes. That is far above
+every documented MCS frame and above max_frame, where the declared length can
+only be trusted blindly, so such an 0xAA is dropped as one noise byte instead of
+opening a quarantine that re-triggers on every later MCC terminator. Complete
+envelopes up to max_frame are still validated and discarded as one unit.
 """
 from collections import deque
+
+# Header bytes of either profile. As the high length byte they would declare an
+# oversized (>= 21761-byte) envelope that no documented MCS frame approaches.
+_HEADER_BYTES = (0x55, 0xAA)
 
 
 class SelectedStream:
@@ -61,6 +74,10 @@ class SelectedStream:
                         self._issue("MCC length", 1); del self.buffer[0]; continue
                 elif head == 0xAA:
                     protocol = "mcs"
+                    if len(self.buffer) < 2:
+                        break
+                    if self.buffer[1] in _HEADER_BYTES:
+                        self._issue("ambiguous AA resynchronized", 1); del self.buffer[0]; continue
                     if len(self.buffer) < 3:
                         break
                     size = int.from_bytes(self.buffer[1:3], "big") + 1

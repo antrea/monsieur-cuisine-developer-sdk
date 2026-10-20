@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:allowBackup="false" android:label="Offline OEM reference probe" />
+    <instrumentation android:name=".ReferenceInstrumentation"
+        android:targetPackage="org.blackstufflabs.monsieurcuisine.oemprobe"
+        android:label="Explicit isolated DEX reference test" />
+    <instrumentation android:name=".NativeSerialInstrumentation"
+        android:targetPackage="org.blackstufflabs.monsieurcuisine.oemprobe"
+        android:label="Explicit emulator software PTY JNI test" />
+</manifest>

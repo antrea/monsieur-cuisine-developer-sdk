@@ -34,7 +34,7 @@ LOCAL_PACKAGES = {'monsieur_cuisine_sdk', 'mcc_protocol', 'mcs_protocol', 'mcc_p
 SOURCE_DIRECTORIES = {'.github', 'android', 'assets', 'docs', 'examples', 'fixtures',
                       'specs', 'src', 'tests', 'tools'}
 SOURCE_ROOT_FILES = {'.gitignore', '.gitattributes', '.editorconfig', 'pyproject.toml',
-                     'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
+                     'README.md', 'ARCHITECTURE.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
                      'CONTRIBUTING.md', 'SECURITY.md', 'RELEASE_NOTES.md', 'RELEASE_AUDIT.md'}
 SOURCE_EXTENSIONLESS = {'.github/CODEOWNERS', 'android/gradlew',
                         'android/gradle/wrapper/LICENSE', 'android/gradle/wrapper/NOTICE'}
@@ -87,6 +87,11 @@ def source_files(root):
             rel = path.relative_to(root).as_posix()
             if path.is_symlink():
                 _issue(issues, rel, 'links are not source inputs')
+            elif name == '.git':
+                # A root .git file is a linked-worktree pointer (Git metadata);
+                # elsewhere it marks a nested checkout or submodule.
+                if base == root:excluded.append(rel)
+                else:_issue(issues, rel, 'nested Git checkout is not part of this project')
             elif name in EXCLUDED_FILES or path.suffix in {'.pyc', '.pyo'}:
                 excluded.append(rel)
             elif path.suffix.lower() in SECRET_SUFFIXES or name == '.env' or name.startswith('.env.') or name.lower() in {'credentials', 'id_rsa', 'id_ed25519'}:
@@ -160,7 +165,14 @@ def audit(root, *, project_checks=True, runtime=False):
                     modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module] if isinstance(node, ast.ImportFrom) and not node.level else []
                     for module in modules:
                         name = (module or '').split('.')[0]
-                        if name and name not in sys.stdlib_module_names and name not in LOCAL_PACKAGES:
+                        optional_serial = (name == 'serial' and rel == 'src/monsieur_cuisine_sdk/hardware.py'
+                            and any(node in ast.walk(method) for cls in tree.body
+                                    if isinstance(cls, ast.ClassDef) and cls.name == 'SerialTransport'
+                                    for method in cls.body if isinstance(method, ast.FunctionDef) and method.name == 'open'))
+                        optional_analysis = (name in ('elftools', 'capstone') and rel == 'src/monsieur_cuisine_sdk/firmware/lab.py'
+                            and any(node in ast.walk(method) for method in tree.body
+                                    if isinstance(method, ast.FunctionDef) and method.name == 'inspect_elf'))
+                        if name and name not in sys.stdlib_module_names and name not in LOCAL_PACKAGES and not (optional_serial or optional_analysis):
                             _issue(issues, rel, 'non-standard-library runtime import', module=name)
         if path.suffix in ('.json', '.jsonl'):
             try:

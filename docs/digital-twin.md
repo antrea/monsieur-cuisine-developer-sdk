@@ -24,6 +24,7 @@ MCC shows modeled RPM. The same UI with MCS shows raw motor levels and explicitl
 
 | Tab | Use |
 |---|---|
+| Backup | Read-only local session verification/inventory, progress/cancellation and actual JSON report export; no hardware access |
 | Dashboard | Common observations, synthetic blade animation and target/observed speed chart |
 | Motor / Temperature | Inspect selected-profile speed and thermal behavior; use the common controls above |
 | Scale & Sensors | Inject weight, actual temperature, firmware number, lid and NTC; use Tare |
@@ -47,7 +48,7 @@ Changing model closes the old connection, cancels stale work and starts a fresh 
 
 Use **Settings → Save recording** to write the current unified JSON trace. In Scenarios, **Verify current replay** compares the session's deterministic inputs, bytes and checkpoints; **Verify saved replay** verifies another unified recording on an independent instance. Verification does not replace the current interactive model.
 
-**New session** resets the model and recording. **Apply physics as fresh session** validates the selected profile's JSON parameters before replacing the model and closes its connection. Save a trace before creating another session. The API retains the previous trace as `last_recording`, but the GUI Save control saves the current trace. Capacity limits reserve a terminal disarm and require a fresh session; [recording policy](recording.md) explains the bounds.
+**New session** resets the model and recording. **Apply physics as fresh session** validates the selected profile's JSON parameters before replacing the model and closes its connection. Save a trace before creating another session. The API retains the previous trace as `last_recording`, but the GUI Save control saves the current trace. Lid, NTC and error injections are profile-specific: the MCC model has no interlock (the motor and heater keep running), while the MCS model blocks motion and heating with the target retained and **resumes automatically** when the condition clears. Neither is a statement about the appliance. When the recording capacity is reached the desktop keeps simulating and reports that the rest of the session is unrecorded; save the recorded part and use **New session** to record again. [Recording policy](recording.md) explains the bounds.
 
 Scenarios are independent bounded experiments, not physical appliance procedures. Cancellation and generation checks prevent an old result from being adopted after reset/model switch. Read each result's named checks and scope rather than treating PASS as a firmware guarantee.
 

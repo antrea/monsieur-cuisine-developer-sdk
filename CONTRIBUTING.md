@@ -8,6 +8,6 @@ Document evidence as static host observation, isolated offline comparison, synth
 
 Contribute only material you may redistribute. Do not add OEM APKs, decompiled methods, firmware, extracted databases/recipes/media, device identifiers, credentials, private paths or signing material. Use newly written synthetic traces and preserve included notices. Community links are attribution, not permission to copy unlicensed content.
 
-Current public instructions are English-first; secondary Italian research and historical device detail should remain accessible. Validate relative documentation links when moving content. Use [migration](docs/migration.md) to describe compatibility changes instead of silently breaking old helper imports.
+Current public instructions are in English; historical device research should remain accessible. Validate relative documentation links when moving content. Use [migration](docs/migration.md) to describe compatibility changes instead of silently breaking old helper imports.
 
 This source preparation does not authorize remote publication or release signing. Keep build output, caches, local SDK locations and diagnostic logs out of the source distribution.

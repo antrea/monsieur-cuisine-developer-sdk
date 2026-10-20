@@ -1,6 +1,6 @@
 # Security scope
 
-The SDK models software offline. Its optional development listener is disabled by default, accepts literal IPv4 loopback only and grants one command owner. It does not provide authentication, an encrypted appliance transport or a physical hardware driver. The original additive checksums are error checks, not security mechanisms.
+The SDK models software offline. Its optional development listener is disabled by default, accepts IPv4 loopback addresses only (127.0.0.0/8; the name `localhost` is mapped to 127.0.0.1) and grants one command owner. It does not provide authentication, an encrypted appliance transport or a physical hardware driver. The original additive checksums are error checks, not security mechanisms.
 
 Security-relevant reports should include the selected profile, SDK version, minimal synthetic input, expected/actual behavior and affected bounds or lifecycle. Avoid posting credentials, real device identities, authenticated logs or proprietary artifacts. For a suspected private-data or exploitable defect, use an established private maintainer contact when one is available; no unverified contact address is invented here.
 

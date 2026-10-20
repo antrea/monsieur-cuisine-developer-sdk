@@ -20,7 +20,11 @@ class DesktopApp:
         import tkinter as tk
         from tkinter import ttk
         self.tk, self.ttk, self.root = tk, ttk, root
-        self.twin = twin or DigitalTwin(model)
+        # An interactive clock records every poll; a full recording is truncated
+        # instead of stopping the motor after a few minutes.
+        self.twin = twin or DigitalTwin(model, on_recording_full="continue")
+        self._truncation_reported = False
+        self._sensor_baseline = {}
         self.connection = None
         self.closed = False
         self.running = True
@@ -36,7 +40,10 @@ class DesktopApp:
         self._console_size = 0
         self._tab_frames = {}
         root.title("Monsieur Cuisine Digital Twin — BlackStuff Labs")
-        root.geometry("1220x840"); root.minsize(1000, 720)
+        # Fit small/scaled work areas (e.g. 1280x720 logical at 150 %).
+        width = min(1220, root.winfo_screenwidth() - 40)
+        height = min(840, root.winfo_screenheight() - 80)
+        root.geometry(f"{width}x{height}"); root.minsize(min(1000, width), min(720, height))
         root.configure(background="#edf2f7")
         root.protocol("WM_DELETE_WINDOW", self.close)
         style = ttk.Style(root)
@@ -65,7 +72,7 @@ class DesktopApp:
         self.owner_var = tk.StringVar(value="Owner: local")
         ttk.Label(selector, textvariable=self.owner_var).pack(side="right")
         control = ttk.Frame(shell); control.pack(fill="x", pady=(0, 10))
-        self.speed = tk.StringVar(value="2"); self.direction = tk.StringVar(value="ccw")
+        self.speed = tk.StringVar(value="2"); self.direction = tk.StringVar(value="cw")
         self.temperature = tk.StringVar(value="0"); self.step_seconds = tk.StringVar(value="0.1")
         for title, variable, values, width in (("Speed",self.speed,list(range(11)),5),
             ("Direction",self.direction,["ccw","cw"],7), ("Heat °C",self.temperature,[],6)):
@@ -73,21 +80,26 @@ class DesktopApp:
             combo=ttk.Combobox(control,textvariable=variable,values=values,width=width,state="readonly")
             combo.pack(side="left",padx=(0,12))
             if title=="Heat °C":self.heat_combo=combo
-        self.start_button=ttk.Button(control,text="START / Apply",command=lambda:self.action(self.start_motor))
+        self.start_button=ttk.Button(control,text="START / Apply",command=lambda:self.action(self.start_motor,sends=True))
         self.start_button.pack(side="left",padx=(0,6))
-        ttk.Button(control,text="STOP",style="Stop.TButton",command=lambda:self.action(self.stop_motor)).pack(side="left",padx=6)
+        ttk.Button(control,text="STOP",style="Stop.TButton",command=lambda:self.action(self.stop_motor,sends=True)).pack(side="left",padx=6)
         self.pause_button=ttk.Button(control,text="Pause",command=self.toggle_clock);self.pause_button.pack(side="left",padx=6)
         ttk.Entry(control,textvariable=self.step_seconds,width=6).pack(side="left",padx=(8,4))
         ttk.Button(control,text="Step seconds",command=lambda:self.action(lambda:self.twin.advance(float(self.step_seconds.get())))).pack(side="left")
+        # Packed before the notebook so the only feedback line is never clipped.
+        self.message=tk.StringVar(value="Synthetic physics. No appliance connected. Default startup opens no listener.")
+        ttk.Label(shell,textvariable=self.message,style="Muted.TLabel",wraplength=1140).pack(side="bottom",fill="x",pady=(10,0))
         self.notebook=ttk.Notebook(shell);self.notebook.pack(fill="both",expand=True)
-        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information")
+        names=("Dashboard","Motor","Temperature","Scale & Sensors","Errors","Protocol Monitor","Scenarios","Timeline","Android Connection","Settings","Protocol Information","Backup","Toolkit")
         for name in names:
             frame=ttk.Frame(self.notebook,padding=14);self.notebook.add(frame,text=name);self._tab_frames[name]=frame
         self.values={key:tk.StringVar() for key in ("speed","temperature","weight","lid","error","firmware","clock","direction")}
         self._dashboard();self._motor();self._temperature();self._sensors();self._faults()
         self._protocol();self._scenarios();self._timeline();self._android();self._settings();self._information()
-        self.message=tk.StringVar(value="Synthetic physics. No appliance connected. Default startup opens no listener.")
-        ttk.Label(shell,textvariable=self.message,style="Muted.TLabel",wraplength=1140).pack(fill="x",pady=(10,0))
+        from .backup.gui import BackupPanel
+        self.backup_panel=BackupPanel(self._tab_frames["Backup"])
+        from .workbench import ToolkitPanel
+        self.toolkit_panel=ToolkitPanel(self._tab_frames["Toolkit"])
         self._load_profile_controls();self.refresh();self._after=root.after(50,self.poll)
 
     def _card(self,parent,label,key):
@@ -133,7 +145,7 @@ class DesktopApp:
         for index,key in enumerate(("lid_open","ntc_present"),3):
             self.ttk.Checkbutton(f,text=key.replace("_"," "),variable=self.sensor_vars[key]).grid(row=index,column=0,columnspan=2,sticky="w",pady=8)
         self.ttk.Button(f,text="Inject sensor state",command=lambda:self.action(self.inject_sensors)).grid(row=5,column=0,pady=14,sticky="w")
-        self.tare_button=self.ttk.Button(f,text="Tare",command=lambda:self.action(self.twin.tare));self.tare_button.grid(row=5,column=1,padx=12)
+        self.tare_button=self.ttk.Button(f,text="Tare",command=lambda:self.action(self.tare,sends=True));self.tare_button.grid(row=5,column=1,padx=12)
         self.ttk.Label(f,text="Sensor and fault controls remain available while Android owns motor commands.",style="Muted.TLabel").grid(row=6,column=0,columnspan=3,pady=15,sticky="w")
 
     def _faults(self):
@@ -166,7 +178,7 @@ class DesktopApp:
         self.hex_var=self.tk.StringVar()
         row=self.ttk.Frame(f);row.pack(fill="x",pady=8)
         self.ttk.Entry(row,textvariable=self.hex_var).pack(side="left",fill="x",expand=True,padx=(0,8))
-        self.hex_button=self.ttk.Button(row,text="Send HEX",command=lambda:self.action(lambda:self.twin.feed(bytes.fromhex(self.hex_var.get()))));self.hex_button.pack(side="right")
+        self.hex_button=self.ttk.Button(row,text="Send HEX",command=lambda:self.action(lambda:self.twin.feed(bytes.fromhex(self.hex_var.get())),sends=True));self.hex_button.pack(side="right")
         self.console=self._text(f)
 
     def _scenarios(self):
@@ -216,22 +228,56 @@ class DesktopApp:
         self.info=self._text(f)
 
     @staticmethod
-    def _replace_text(widget,text):
+    def _replace_text(widget,text,*,preserve_view=False):
+        if preserve_view:
+            # Live views: skip unchanged text, never clear an active selection,
+            # keep the reader's position and follow the tail when at the bottom.
+            if getattr(widget,"_rendered",None)==text or widget.tag_ranges("sel"):return
+            first,last=widget.yview()
+            if widget.winfo_ismapped():widget._follow=last>=.999  # hidden tabs keep their mode
+            follow=getattr(widget,"_follow",True)
+            if not follow and getattr(widget,"_rendered",None) is not None:return  # paused while reading
         widget.delete("1.0","end");widget.insert("1.0",text)
+        if preserve_view:
+            widget._rendered=text
+            if follow:widget.see("end")
 
     def _load_profile_controls(self):
         temperatures = ([0,37,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130]
                         if self.twin.model==DeviceModel.MCC else [0,37,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130])
         self.heat_combo.configure(values=temperatures);self.temperature.set("0")
+        state=self.twin.get_state()
+        for key,value in (("weight",str(round(state.weight))),("temperature",str(round(state.temperature))),
+                          ("firmware",str(state.firmware)),("lid_open",state.lid_open),("ntc_present",state.ntc_present)):
+            self.sensor_vars[key].set(value)
+        self._sensor_baseline={key:var.get() for key,var in self.sensor_vars.items()}
+        self._truncation_reported=False
         self.port.set("8765" if self.twin.model==DeviceModel.MCC else "8766")
         self.format_var.set("MCC build292 · TX15 / RX27 · synthetic RPM" if self.twin.model==DeviceModel.MCC else "MCS 1.2.14.15 · TX39 / RX48 · raw level, RPM unknown")
         self._replace_text(self.parameters,json.dumps(self.twin.profile.parameters,indent=2))
         self._replace_text(self.info,json.dumps(self.twin.capabilities,indent=2))
         self._console_generation=None
 
-    def action(self, callback):
+    def action(self, callback, *, sends=False):
+        twin,stream=self.twin,self.twin.stream
+        generation,discarded,refused,accepted=twin.generation,stream.rejected,twin.rejected_commands,twin.command_count
         try:
-            result=callback();self.message.set("Applied to the selected virtual model.");return result
+            result=callback()
+            # Report framing/profile refusals instead of claiming success.
+            same=self.twin is twin and twin.generation==generation and twin.stream is stream
+            if same and twin.rejected_commands>refused:
+                reason=next((e.get("reason","") for e in reversed(twin.timeline) if e.get("event")=="rejected_command"),"")
+                self.message.set("Command refused by the model: "+reason)
+            elif same and sends and twin._faults.get("disconnected") and twin.command_count==accepted:
+                self.message.set("Simulated link is disconnected: input was not delivered to the model.")
+            elif same and stream.rejected>discarded:
+                prefix="Some input bytes were discarded" if twin.command_count>accepted else "Input not executed"
+                self.message.set(f"{prefix}: {stream.issues[-1]['reason']}. See Timeline.")
+            elif same and twin.buffered_bytes and twin.command_count==accepted:
+                self.message.set(f"Partial frame buffered ({twin.buffered_bytes} bytes); waiting for the rest.")
+            else:
+                self.message.set("Applied to the selected virtual model.")
+            return result
         except (ValueError,TypeError,OSError) as exc:
             self.message.set(str(exc));return None
         finally:
@@ -244,9 +290,23 @@ class DesktopApp:
         if self.connection:self.connection.disconnect("desktop STOP")
         return self.twin.stop_motor()
 
+    def tare(self):
+        result=self.twin.tare()
+        # The displayed weight is now zero: make a new weight entry count as an edit.
+        self.sensor_vars["weight"].set("0");self._sensor_baseline["weight"]="0"
+        return result
+
     def inject_sensors(self):
-        values={key:(var.get() if key in ("lid_open","ntc_present") else int(var.get())) for key,var in self.sensor_vars.items()}
-        return self.twin.set_sensors(**values)
+        # Inject only the fields edited since the last injection, so toggling the
+        # lid does not also overwrite the evolving temperature or weight.
+        changed={key for key,var in self.sensor_vars.items() if var.get()!=self._sensor_baseline.get(key)}
+        if not changed:
+            raise ValueError("No sensor field was edited since the last injection")
+        values={key:(self.sensor_vars[key].get() if key in ("lid_open","ntc_present") else int(self.sensor_vars[key].get()))
+                for key in changed}
+        result=self.twin.set_sensors(**values)
+        self._sensor_baseline={key:var.get() for key,var in self.sensor_vars.items()}
+        return result
 
     def inject_faults(self):
         return self.twin.set_faults(delay_seconds=float(self.fault_vars["delay_seconds"].get()),
@@ -341,9 +401,10 @@ class DesktopApp:
         active=bool(self.connection and self.connection.listener)
         self.connection_button.configure(text="Disable Android Connection" if active else "Enable Android Connection")
         self.host_entry.configure(state="disabled" if active else "normal");self.port_entry.configure(state="disabled" if active else "normal")
-        self._replace_text(self.console,"\n".join(f"{row['time']:9.3f} {row['model'].upper()} {row['direction']} {row['hex']}" for row in self.twin.frames))
+        self._replace_text(self.console,"\n".join(f"{row['time']:9.3f} {row['model'].upper()} {row['direction']} {row['hex']}" for row in self.twin.frames),preserve_view=True)
         self._replace_text(self.timeline_text,"\n".join(json.dumps(event) for event in list(self.twin.timeline)[-200:])+"\n"+
-            "\n".join(f"{event['operation']} {event['input']}" for event in self.twin.recording["actions"][-60:]))
+            "\n".join("framing "+json.dumps(issue) for issue in list(self.twin.stream.issues)[-20:])+"\n"+
+            "\n".join(f"{event['operation']} {event['input']}" for event in self.twin.recording["actions"][-60:]),preserve_view=True)
         self._draw(state)
 
     def _draw(self,state):
@@ -385,6 +446,10 @@ class DesktopApp:
         except (ValueError,OSError) as exc:
             self.running=False;self.pause_button.configure(text="Resume");self.message.set(str(exc))
             if self.connection:self.disable_android()
+        if self.twin.recording.get("truncated") and not self._truncation_reported:
+            self._truncation_reported=True
+            self.message.set("Recording capacity reached: the simulation continues unrecorded. "
+                             "Save recording keeps the recorded part; New session starts a fresh recording.")
         state=self.twin.get_state()
         if state.actual_speed:
             self._angle+=(1 if state.actual_direction=="cw" else -1)*min(10,state.actual_speed)*elapsed
@@ -397,6 +462,8 @@ class DesktopApp:
 
     def close(self):
         if self.closed:return
+        self.backup_panel.close()
+        self.toolkit_panel.close()
         self.cancel_job();self.disable_android();self.twin.disarm();self.closed=True
         if self._after:
             self.root.after_cancel(self._after);self._after=None

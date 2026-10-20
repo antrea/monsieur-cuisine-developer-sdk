@@ -59,7 +59,10 @@ class MCSVirtualPowerBoard:
                     s.requested_level=20.0  # deliberately artificial turbo policy
                 s.temperature_level=c.temperature_level
                 s.target_temperature=float(c.constant_temperature or TEMPERATURES[c.temperature_level])
-                s.remaining=float(c.seconds);s.timer_active=bool(c.seconds)
+                # Re-sending the countdown the board reports (ceil of the remaining
+                # time) keeps the running deadline; any other value sets a new one.
+                if not (s.timer_active and c.seconds and c.seconds==math.ceil(s.remaining-1e-9)):
+                    s.remaining=float(c.seconds);s.timer_active=bool(c.seconds)
                 s.light_type,s.light=c.light;s.button=c.button;s.turbo_lock=c.turbo_lock
                 s.last_command_time=self.engine.clock.now
                 if c.function in (0,15):self.engine.stop()

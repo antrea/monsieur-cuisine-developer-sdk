@@ -15,7 +15,7 @@ mc-sdk --model mcc inspect --hex "55 0F A1 00 00 00 00 00 00 00 00 00 00 05 AA"
 
 `build start` uses common units and validates profile capabilities. Common kinds are `start`, `stop`, `tare`, `query`. MCC has no verified query opcode and rejects it explicitly. MCC also rejects a nonzero duration or a 40 °C target.
 
-Native builders accept `--params` as a JSON object. MCC kind `tx` uses `operation`, `speed`, `temperature_level`, `direction`, `tare`. MCS kinds `manual`, `operation`, `ota` use the native encoder keyword names. Examples below use POSIX/PowerShell single-quoted JSON; adjust quoting for Command Prompt.
+Native builders accept `--params` as a JSON object. MCC kind `tx` uses `operation`, `speed`, `temperature_level`, `direction`, `tare`. MCS kinds `manual`, `operation`, `ota` use the native encoder keyword names. Examples below use POSIX single-quoted JSON. Windows PowerShell 5.1 strips the inner double quotes when calling native programs: escape them (`--params '{\"speed\":2}'`) or use PowerShell 7.3+; in Command Prompt write `--params "{\"speed\":2}"`.
 
 ```sh
 mc-sdk --model mcc build tx --params '{"operation":"turbo","speed":10}'
@@ -46,7 +46,7 @@ The native desktop shows the same original binary frames in its Protocol Monitor
 
 ![Unified desktop protocol monitor](../assets/screenshots/protocol-monitor.png)
 
-CLI file reads are bounded to 100 MB, decoded streams to 100000 frames, and JSONL to 100000 records. These are offline tools, not an unbounded packet-capture service.
+CLI file reads are bounded to 100 MB, decoded streams to 100000 frames, and JSONL to 100000 records. Full JSON documents and `--params` objects are limited to 512 nested containers before decoding, independently of the platform's native JSON recursion limit; excessive nesting produces the structured `RecursionError` CLI error. Brackets inside strings do not count. These are offline tools, not an unbounded packet-capture service.
 
 ## Scenarios, recordings and conformance
 
@@ -64,4 +64,4 @@ mc-sdk --model mcs capabilities
 
 `scenario` and `simulate` are aliases for the shared named scenarios. `record` creates a short deterministic synthetic start/sample/STOP session and verifies it before saving. `replay` requires the recording's initial model to match `--model` and checks bytes plus checkpoints. [Recording format and limits](recording.md) apply.
 
-Conformance checks frozen independent corpora: MCC's eight representative isolated-JVM TX vectors; MCS's 900 manual/operation/OTA cases; or its distinct 900 envelope-reference cases. `--vectors path.json` checks a compatible replacement corpus; `--write-vectors path.json` exports the selected frozen corpus. The MCS envelope corpus is explicitly unsupported for MCC. These checks prove software byte agreement with their stated evidence scope, not hardware behavior.
+Conformance checks frozen corpora: MCC's eight representative TX vectors (stated provenance: isolated-JVM run of the original serializer; harness not shipped); MCS's 900 manual/operation/OTA cases, which are this SDK's own encoder output frozen as a regression baseline; or its 900 envelope-reference cases (stated provenance: recovered serializer; envelope and checksum only). `--vectors path.json` checks a compatible replacement corpus; `--write-vectors path.json` exports the selected frozen corpus. The MCS envelope corpus is explicitly unsupported for MCC. These checks prove software byte agreement with their stated evidence scope, not hardware behavior.

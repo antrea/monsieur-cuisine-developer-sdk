@@ -33,8 +33,11 @@ class PhysicsConfig:
     cooling_c_s: float = 0.1
     ambient_c: float = 20.0
     speed_rpm: tuple[int, ...] = ILLUSTRATIVE_RPM
+    calibration_step_ms: int = 1000
 
     def __post_init__(self) -> None:
+        if type(self.calibration_step_ms) is not int or not 1 <= self.calibration_step_ms <= 60000:
+            raise ValueError("synthetic calibration step must be 1..60000 milliseconds")
         for name in ("acceleration_rpm_s", "deceleration_rpm_s", "coast_deceleration_rpm_s", "heating_c_s", "cooling_c_s", "ambient_c"):
             value = getattr(self, name)
             try:
@@ -84,6 +87,8 @@ class PowerBoardModel:
         self._temperature = float(self.config.ambient_c)
         self._requested_direction = Direction.CLOCKWISE
         self._coasting = False
+        self._calibration_active = False
+        self._calibration_start_ms = None
         self._delay_ms = 0
         self._drop_every = 0
         self._corrupt_every = 0
@@ -147,7 +152,23 @@ class PowerBoardModel:
             if not isinstance(frame, TxFrame):
                 self._event("tx_rejected", reason="RX input is not a command", hex=frame.raw.hex(" "))
                 continue
-            if frame.warnings or frame.calibration or frame.direction is None:
+            if frame.calibration in (0xE6, 0xE9) and not frame.warnings:
+                # Synthetic firmware policy: repeated 10 Hz START does not reset
+                # elapsed calibration time. No loads/real calibration are claimed.
+                if not self._calibration_active:
+                    self._calibration_active = True
+                    self._calibration_start_ms = None
+                    self.controller.calibration_step = 0
+                if frame.calibration == 0xE9 and self._calibration_start_ms is None:
+                    self._calibration_start_ms = self.now_ms
+                self.controller.scale_state_raw = 1
+                self.controller.requested_speed_level = self.controller.target_rpm = 0
+                self.controller.requested_temperature_level = self.controller.target_temperature = 0
+                self.controller.motor_on = self.controller.heater_on = False
+                self._event("synthetic_calibration", command=frame.calibration)
+                self._schedule_response()
+                continue
+            if frame.warnings or frame.direction is None:
                 self._event("tx_rejected", reason="unknown, calibration, or semantically invalid command", hex=frame.raw.hex(" "), warnings=list(frame.warnings))
                 continue
             try:
@@ -162,6 +183,11 @@ class PowerBoardModel:
             except ValueError as exc:
                 self._event("tx_rejected", reason=str(exc))
                 continue
+            if self._calibration_active:
+                self._calibration_active = False
+                self._calibration_start_ms = None
+                self.controller.scale_state_raw = 2
+                self.controller.calibration_step = 0
             self._requested_direction = frame.direction
             self._coasting = frame.operation == Operation.SLEEP
             self.controller.target_rpm = self.config.speed_rpm[self.controller.requested_speed_level]
@@ -217,6 +243,8 @@ class PowerBoardModel:
         self._motion(delta_ms / 1000)
         self._heat(delta_ms / 1000)
         self.now_ms += delta_ms
+        if self._calibration_active and self._calibration_start_ms is not None:
+            self.controller.calibration_step = min(4, (self.now_ms - self._calibration_start_ms) // self.config.calibration_step_ms)
         self._synchronize()
         self._event("advance", delta_ms=delta_ms, velocity_rpm=self._velocity, temperature_c=self._temperature)
         return self._ready()

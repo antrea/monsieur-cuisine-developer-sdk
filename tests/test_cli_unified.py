@@ -27,7 +27,8 @@ class UnifiedCliTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, expected, result.stderr)
             if expected == 0:
-                self.assertEqual(result.stdout.strip(), "0.1.0")
+                from monsieur_cuisine_sdk import __version__
+                self.assertEqual(result.stdout.strip(), __version__)
 
     def test_capabilities_import_without_tk_or_socket(self):
         for model in ("mcc", "mcs"):

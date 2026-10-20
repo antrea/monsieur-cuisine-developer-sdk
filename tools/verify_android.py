@@ -11,6 +11,7 @@ import queue
 import subprocess
 import sys
 import threading
+import tomllib
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -40,7 +41,8 @@ def verify(model, *, mode="jvm", java="java", jar=None, adb=None,
                  "-e","model",model.name,"-e","port",str(port),
                  "org.blackstufflabs.monsieurcuisine.demo.debug.test/org.blackstufflabs.monsieurcuisine.demo.BridgeInstrumentation"]
     else:
-        jar=jar or ROOT/"android/sdk/build/libs/sdk-0.1.0-host-tests.jar"
+        version=tomllib.loads((ROOT/"pyproject.toml").read_text("utf-8"))["project"]["version"].replace(".dev", "-dev")
+        jar=jar or ROOT/f"android/sdk/build/libs/sdk-{version}-host-tests.jar"
         command=[java,"-cp",str(jar),"org.blackstufflabs.monsieurcuisine.HostExercise",model.name,str(port)]
     lines=queue.Queue();trace=[];errors=[]
     process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding="utf-8")

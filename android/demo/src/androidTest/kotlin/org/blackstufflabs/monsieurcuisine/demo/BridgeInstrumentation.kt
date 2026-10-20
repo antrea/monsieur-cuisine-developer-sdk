@@ -15,6 +15,12 @@ class BridgeInstrumentation: Instrumentation() {
         val result=Bundle();var activity:MainActivity?=null
         fun stage(text:String) { Log.i("MCSDK_E2E",text);sendStatus(1,Bundle().apply { putString("stage",text) }) }
         try {
+            arguments.getString("dataAction")?.let {
+                result.putString("data", AppDataFixture.run(targetContext,it))
+                result.putBoolean("passed",true)
+                finish(Activity.RESULT_OK,result)
+                return
+            }
             val model=DeviceModel.valueOf(arguments.getString("model","MCC"))
             val number=arguments.getString("port",model.defaultPort.toString()).toInt()
             val current=startActivitySync(Intent(targetContext,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "monsieur-cuisine-developer-sdk"
-version = "0.1.0"
+version = "2.0.0.dev0"
 description = "Unofficial Python and Android SDK and offline Digital Twin for Lidl/Silvercrest Monsieur Cuisine Connect and Smart"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,7 +15,16 @@ keywords = ["lidl", "silvercrest", "monsieur-cuisine", "mcc", "mcs", "digital-tw
 dependencies = []
 classifiers = ["Programming Language :: Python :: 3 :: Only", "Operating System :: OS Independent", "Development Status :: 3 - Alpha"]
 
+[project.optional-dependencies]
+serial = ["pyserial>=3.5,<4"]
+analysis = ["pyelftools>=0.33,<1", "capstone>=5,<6"]
+
 [project.scripts]
+mc-backup = "monsieur_cuisine_sdk.backup.cli:main"
+mc-usb = "monsieur_cuisine_sdk.usb:main"
+mc-hardware = "monsieur_cuisine_sdk.hardware:main"
+mc-recovery = "monsieur_cuisine_sdk.recovery:main"
+mc-firmware = "monsieur_cuisine_sdk.firmware.lab:main"
 mc-sdk = "monsieur_cuisine_sdk.cli:main"
 monsieur-cuisine-digital-twin = "monsieur_cuisine_sdk.__main__:main"
 

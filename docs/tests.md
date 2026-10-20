@@ -1,5 +1,79 @@
 # Validation and reproducibility
 
+## Owner app installation and updates from a drive (2026-10-20)
+
+The Manager's install/update path is exercised on the API 23 emulator by
+`UsbDeliveryExercise` (started through `ConsentInstrumentation` with
+`-e scenario usb`, see the [Android README](../android/README.md)): new
+installation with Android's consent, data creation in the installed app,
+cancelled update, damaged file, foreign signing key, APK requiring a newer
+Android, file no longer readable, real update keeping the app's data, downgrade
+refusal and the Manager closed while Android waits for consent. The documents
+come from a test-only provider inside the test package; that proves the software
+flow, not a mounted drive on an appliance. The first installation of the Manager
+itself was driven through stock Android 6 screens only (document browser,
+"install blocked", Settings, consent, Open) with a private adb script; the stock
+document browser does not hand an APK to the installer on Android 6, which the
+guides record as an open step for the appliance's own file manager. No physical
+MCC test was run.
+
+## Offline software batch (2026-10-20)
+
+The suite grew to **287 Python tests** with the virtual host presets, service
+callbacks, scale display, LED model and the explicit output discard. It passed
+on CPython 3.13 (build environment with the optional extras, one symlink skip)
+and on CPython 3.11, 3.12 and 3.14 (base interpreters, three skips: symbolic
+links need a privilege this user lacks, and the pyserial/capstone extras were
+not installed). Every host rule added in this batch is a static reading of the
+decompiled build-292 app; none was executed on Android or on an appliance, and
+the twin's board responses remain synthetic. Windows only; hosted jobs for this
+branch have not run.
+
+## SDK 2.0 completion development verification (2026-10-18)
+
+The latest complete local suite passed **265 Python tests in 102.928 seconds on
+CPython 3.13/Windows**, including actual Tk widgets, backup/recovery file flows,
+ADB transaction fault models and real pyserial software loopback. The earlier
+184-test checkpoint passed on Python 3.11–3.14; that older matrix is not a final
+cross-platform verification of all subsequent changes. This branch is still
+`2.0.0.dev0`, unpushed and not a completed SDK 2.0 release.
+All **29 Kotlin/JVM tests** were also executed again, with zero failures; the
+normal API23 demo/debug-instrumentation outputs were rebuilt after the dedicated
+consent fixture build. Build/lint for Manager, its instrumentation and oemprobe
+passed locally. Remote hosted jobs for this branch have not run.
+
+The independent build-292 DEX was executed directly on API23 ART: **57,998
+codec/conversion comparisons, zero disagreements**, repeated with the updated
+probe APK. The 9,642-record public subset also runs in the offline suite. A
+separate actual original x86 JNI execution verified software PTY open and
+invalid-baud rejection. Its original close failed due to the missing `mFd`
+field and that failure was reproduced; it is not a passing native-close test.
+See [OEM execution and provenance](oem-conformance.md).
+
+Real API23 emulator tests cover both demo Activities communicating with Tk,
+actual APK installation/list/start, persistent HOME selection and rollback,
+same-UID debug-app updates with data/SQLite/preferences/keystore continuity and
+interrupted recovery. Manager's normal SAF → PackageInstaller UI flow now covers
+cancel, required consent, successful installation and restoration of the source
+permission setting through system UI. These are ordinary app operations on an
+emulator; the root-forced adbd and emulator SELinux domain do not prove the
+privilege policy of a physical MCC. Mock ADB tests remain internal regressions,
+separate from these actual Android runs.
+
+The actual owner's backup was imported through Tk, materialized as a new
+15,634,268,160-byte image, compared across 21 partitions and checked through the
+original external file verifier. The ext4 reader's earlier independent 7-Zip
+comparison covered 1,421 regular files, 155 symlinks and 277 directories.
+Original APK internals, platform/updater configuration and native libraries have
+also been analyzed privately; no OEM bytes or personal backup data are shipped.
+
+The published v0.1.0 hosted results below are historical baseline evidence,
+**not hosted CI results for this unpushed development branch**. Full final
+packaging, consolidated conformance coverage and acceptance remain open. No
+physical UART, robot actuation, eMMC restore or hardware safety result is claimed.
+See [USB](usb-toolkit.md), [backup](backup.md), [recovery](recovery.md) and
+[host evidence levels](mcc-oem-policy.md).
+
 After an editable install, run from the repository root:
 
 ```sh
