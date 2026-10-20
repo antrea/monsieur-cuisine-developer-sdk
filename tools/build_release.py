@@ -21,6 +21,23 @@ import zipfile
 from audit_release import audit
 
 
+def mandatory_requirements(requires):
+    """Requirements without an ``extra ==`` marker: what every installation pulls in.
+
+    ``importlib.metadata.requires`` also lists optional extras such as
+    ``pyserial>=3.5,<4; extra == "serial"``. Those are opt-in and do not make the
+    wheel depend on third-party code; other markers (Python version, platform)
+    still count as mandatory.
+    """
+    import re
+    mandatory = []
+    for requirement in requires or ():
+        _name, _separator, marker = requirement.partition(';')
+        if not re.search(r'\bextra\s*==', marker):
+            mandatory.append(requirement.strip())
+    return mandatory
+
+
 def git_selection_issues(root, selected):
     """Selected files that are untracked or uncommitted when root is a Git top level.
 
@@ -129,7 +146,9 @@ def verify_wheel(root, output, wheel, *, gui=False, record_windows_launcher_bloc
             failed('installed wheel check failed; see installed-wheel-check.json')
         return True
     run([executable,'-I','-m','pip','install','--no-index','--no-deps',wheel])
-    code = """import importlib,json,pathlib,sys
+    import inspect
+    code = inspect.getsource(mandatory_requirements) + """
+import importlib,json,pathlib,re,sys
 from monsieur_cuisine_sdk import DigitalTwin,replay
 prefix=pathlib.Path(sys.prefix).resolve()
 assert pathlib.Path(importlib.import_module('monsieur_cuisine_sdk').__file__).resolve().is_relative_to(prefix)
@@ -146,8 +165,11 @@ for name in ('mcc_protocol','mcs_protocol','mcc_powerboard_simulator','mcs_digit
     assert pathlib.Path(importlib.import_module(name).__file__).resolve().is_relative_to(prefix)
 assert 'tkinter' not in sys.modules and 'socket' not in sys.modules
 import importlib.metadata
-assert not importlib.metadata.requires('monsieur-cuisine-developer-sdk')
-print(json.dumps({'standalone_both_profiles':True,'runtime_dependencies':[],'installed_under_venv':True}))
+declared=importlib.metadata.requires('monsieur-cuisine-developer-sdk') or []
+mandatory=mandatory_requirements(declared)
+assert not mandatory, mandatory
+extras=sorted({m.group(1) for r in declared for m in [re.search(r'extra\\s*==\\s*["\\']([^"\\']+)',r)] if m})
+print(json.dumps({'standalone_both_profiles':True,'runtime_dependencies':mandatory,'optional_extras':extras,'installed_under_venv':True}))
 """
     run([executable,'-I','-c',code])
     launcher_blocked=False

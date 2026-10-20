@@ -15,10 +15,18 @@ ROOT=Path(__file__).resolve().parents[1]
 TOOLS=ROOT/'tools'
 if str(TOOLS) not in sys.path:sys.path.insert(0,str(TOOLS))
 from audit_release import audit,source_files,WRAPPER_PATH,REQUIRED_FILES
-from build_release import build_source,verify_wheel
+from build_release import build_source,mandatory_requirements,verify_wheel
 
 
 class ReleaseSourceTests(unittest.TestCase):
+    def test_installed_wheel_check_counts_only_unconditional_requirements(self):
+        # Optional extras are opt-in; a wheel with only extras has no runtime dependency.
+        self.assertEqual(mandatory_requirements(None),[])
+        self.assertEqual(mandatory_requirements(['pyserial>=3.5,<4; extra == "serial"',
+                                                 'capstone>=5,<6; extra=="analysis"']),[])
+        self.assertEqual(mandatory_requirements(['requests>=2','x; python_version < "3.12"','y; extra == "z"']),
+                         ['requests>=2','x; python_version < "3.12"'])
+
     def test_current_public_source_audit(self):
         result=audit(ROOT)
         self.assertTrue(result['passed'],result['issues'])

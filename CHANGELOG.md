@@ -13,6 +13,9 @@
   SDK-marked import/stage/recovery outputs, never sessions, links or complete
   outputs without explicit consent.
 - `examples/cooking_programs.py` prints a preset's latched commands, callbacks and LED.
+- Release tool: the installed-wheel check now asserts that no *unconditional*
+  requirement exists and reports the optional extras; it had failed on the
+  `serial`/`analysis` extras declared after the last packaged checkpoint.
 
 ## Unreleased — full-completion work in progress
 
